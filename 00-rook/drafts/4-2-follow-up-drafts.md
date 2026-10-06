@@ -1,5 +1,7 @@
 # 4.2 follow-up: draft messages (not sent)
 
+> **Superseded by `consolidated-drafts.md`.** Use that file.
+
 Drafted 6 Oct 2026. Add your name and a date before sending. Data referenced is from the rook-database extract, which ends 6 Sep (tickets 7 Sep).
 
 ---
