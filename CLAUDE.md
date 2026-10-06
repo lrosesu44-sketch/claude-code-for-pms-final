@@ -82,3 +82,8 @@ _Sources: `00-rook/company/notes/handoff-from-priya.docx` (Priya's opinion, writ
 - Be candid and recommend rather than survey. Flag where a claim is the handover's opinion versus verified data.
 - Don't invent names, numbers or metric definitions. If a fact is missing, say so and tell me who to ask.
 - Draft docs and updates in plain language; ask for the audience if unclear.
+
+- Session 1 follow-ups: drafts to Ravi (7 Sep onward numbers), Nadia (ticket themes, 15 minutes) and Marcus and Wen (findings and three questions) are in `00-rook/drafts/4-2-follow-up-drafts.md`. None sent yet; they need my name, dates and a meeting time. Check whether I sent them before suggesting next steps.
+- The rook-database has five tables (callouts, pings, responders, handlers, support_tickets). Callouts and pings stop at 6 Sep, tickets at 7 Sep, so there is no data for the month before today. Responders there have only name, handler and usual area: no tags, availability or live location.
+- Strongest lead so far: the four starved responders (Vesper, Farlight, The Undertow, Meteor Mite) miss most pings. Nobody knows why. Next test: ask Wen how missed pings feed the score, and check push delivery for those four.
+- Still open: whether the ranking change was meant to cover responders who miss pings (Marcus asked on 14 Aug); how required tags are set on an incident; whether the override log was built; who holds last year's acceptance numbers.

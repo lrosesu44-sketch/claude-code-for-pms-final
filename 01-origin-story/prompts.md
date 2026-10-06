@@ -24,6 +24,36 @@ prompt library built from your own questions.
 
 ### 1.
 
+1. How can we ensure that callouts are reduced and increase the number of responses?
+2. How can we close the gaps in supply and lock down availability during specific time periods, so there is at least one superhero on-call per high call volume area?
+
 ### 2.
 
+3. Can we identify whether there are any special skills or powers necessary or that would be helpful based on what we know about a current incident?
+
 ### 3.
+
+Yes, to answer both your questions: please:
+
+1. Query the rook-database for acceptance by week and coverage by area and hour to turn the hypotheses above into findings.
+2. Look at the incident data in the rook-database for incident fields an the override.log to see whether tags are structured.
+
+### 4.
+
+Can we get the September data to see if any issues were resolved?
+
+### 5.
+
+First, add the findings that you noted above to CLAUDE.md
+
+### 6.
+
+Yes, draft the request to Ravi and Nadia
+
+### 7.
+
+Draft the note to Marcus and Wen
+
+### 8.
+
+Save all three drafts as a file in the folder
