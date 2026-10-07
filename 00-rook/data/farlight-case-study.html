@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Farlight after 4.2: week by week</title>
+<style>
+  :root { --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781; --grid:#f0efec;
+          --taken:#2a78d6; --down:#eda100; --missed:#eb6834; --other:#898781; --tick:#0b0b0b; }
+  @media (prefers-color-scheme: dark) {
+    :root { --surface:#1a1a19; --ink:#ffffff; --ink2:#c3c2b7; --grid:#383835;
+            --taken:#3987e5; --down:#c98500; --missed:#d95926; --tick:#ffffff; }
+  }
+  body { font-family: Arial, sans-serif; background:var(--surface); color:var(--ink); margin:24px; max-width:900px; }
+  h1 { font-size:19px; margin:0 0 6px; line-height:1.3; } h2 { font-size:14px; margin:22px 0 2px; }
+  p.sub { color:var(--ink2); font-size:13px; margin:0 0 6px; }
+  .legend { display:flex; gap:16px; font-size:12px; color:var(--ink2); flex-wrap:wrap; margin:4px 0; }
+  .legend span::before { content:""; display:inline-block; width:10px; height:10px; margin-right:5px; background:var(--c); border-radius:var(--r,0); }
+  svg text { font-family: Arial, sans-serif; }
+  #tip { position:fixed; pointer-events:none; background:var(--surface); color:var(--ink); border:1px solid var(--muted);
+         border-radius:4px; padding:6px 8px; font-size:12px; display:none; line-height:1.5; max-width:300px; }
+  table { border-collapse:collapse; font-size:12.5px; margin-top:16px; width:100%; }
+  th, td { text-align:right; padding:4px 8px; border-bottom:1px solid var(--grid); vertical-align:top; }
+  th:first-child, td:first-child { text-align:left; } td.l { text-align:left; }
+  tr.rel td { background:rgba(235,104,52,0.10); }
+  p.note { color:var(--ink2); font-size:12px; margin-top:10px; }
+</style>
+</head>
+<body>
+<h1>Farlight (handler: Linda Pruitt, area: Uptown): pings fell from 12 a week to none within three weeks of 4.2, while Uptown's callouts held steady and others took them</h1>
+<p class="sub">29 Jun to 6 Sep 2026. Dashed line = 4.2 release, Wed 12 Aug. Handler is Linda Pruitt in every week and on every ticket.</p>
+
+<h2>1. Farlight's pings per week, by outcome</h2>
+<div class="legend"><span style="--c:var(--taken)">Taken</span><span style="--c:var(--down)">Turned down</span><span style="--c:var(--missed)">Missed</span></div>
+<svg id="a" viewBox="0 0 820 220" width="100%" role="img" aria-label="Stacked bars of Farlight's pings per week: 11 to 13 a week before 4.2, then 10, 3, 1 and 0."></svg>
+
+<h2>2. Every ping since 10 Aug, with the handler's tickets about it</h2>
+<div class="legend"><span style="--c:var(--taken);--r:50%">Taken</span><span style="--c:var(--down)">Turned down</span><span style="--c:var(--missed)">Missed</span><span style="--c:var(--tick);--r:50%">Ticket from Linda Pruitt: "quiet" / "nothing coming through"</span></div>
+<svg id="b" viewBox="0 0 820 190" width="100%" role="img" aria-label="Timeline of Farlight's 14 pings since 10 Aug and the 11 tickets her handler filed about the quiet stretch. The last ping was 28 Aug."></svg>
+
+<h2>3. Uptown callouts per week: who took them</h2>
+<div class="legend"><span style="--c:var(--taken)">Taken by Farlight</span><span style="--c:var(--other)">Taken by another responder</span><span style="--c:var(--missed)">Unfilled</span></div>
+<svg id="c" viewBox="0 0 820 220" width="100%" role="img" aria-label="Stacked bars of Uptown callouts per week: Farlight took about 9 of 10 before 4.2, then 4 of 6, and none in the last three weeks."></svg>
+<div id="tip"></div>
+
+<table id="wk">
+  <caption style="text-align:left;color:var(--ink2);padding-bottom:6px">Week by week (pings from the database; matches callout-history.csv)</caption>
+  <thead><tr><th>Week starting</th><th>Handler</th><th>Pings</th><th>Pings vs prior week</th><th>Pings vs 6-wk avg (12.0)</th><th>Taken</th><th>Turned down</th><th>Missed</th><th>Take rate</th><th>Uptown callouts (she took / others / unfilled)</th><th class="l">Handler's tickets about Farlight</th></tr></thead>
+  <tbody></tbody>
+</table>
+<p class="note">Before-4.2 average (6 weeks): 12.0 pings, 8.8 taken, 2.7 turned down, 0.5 missed a week, take rate 73.6%. The week of 10 Aug includes 3 pings before the release (all answered: 2 taken, 1 turned down) and 7 after it.
+Tickets are grouped by the week they were filed. "Callouts" are shown two ways: those in her area (Uptown) and the ones she took.
+Nothing in the data records leave, availability changes or why a ping was missed; this page does not infer any of that (Policy 4.1).</p>
+
+<script>
+const label = d => new Date(d+"T00:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+const tip = document.getElementById("tip");
+const attach = (svg, fn) => {
+  svg.addEventListener("mousemove", e => { const t = e.target.closest("[data-tip]"); if(!t){ tip.style.display="none"; return; }
+    tip.innerHTML = t.dataset.tip; tip.style.display="block"; tip.style.left=(e.clientX+14)+"px"; tip.style.top=(e.clientY+14)+"px"; });
+  svg.addEventListener("mouseleave", ()=> tip.style.display="none");
+};
+// week, sent, taken, turned down, missed, uptown callouts, she took, others took, unfilled
+const W = [
+ ["2026-06-29",12,9,3,0,10,9,0,1],["2026-07-06",12,9,3,0,10,9,0,1],["2026-07-13",11,8,2,1,8,8,0,0],["2026-07-20",12,9,2,1,10,9,0,1],
+ ["2026-07-27",13,10,3,0,11,10,0,1],["2026-08-03",12,8,3,1,8,8,0,0],["2026-08-10",10,4,2,4,6,4,2,0],["2026-08-17",3,0,1,2,7,0,6,1],
+ ["2026-08-24",1,0,0,1,10,0,10,0],["2026-08-31",0,0,0,0,10,0,10,0]
+];
+// tickets about the quiet stretch: [id, date, text]
+const T = [[3060,"2026-08-17","phone has not gone off in 3 days"],[3071,"2026-08-20","four pings in the past seven days"],[3081,"2026-08-22","two pings in the last week against a usual twelve"],
+ [3089,"2026-08-24","three pings in the last seven days; \"I would rather know than guess\""],[3099,"2026-08-26","nothing since Sun 23 Aug"],[3103,"2026-08-28","five days; \"is Farlight still on the list?\""],
+ [3110,"2026-08-29","first one in 5 days and she missed it"],[3114,"2026-08-30","two pings in the past seven days"],[3120,"2026-09-01","Farlight, in her own words: \"nothing again this week. starting to wonder if im still even in the system.\""],
+ [3130,"2026-09-03","phone has not gone off in 6 days"],[3139,"2026-09-05","nothing since Fri 28 Aug"]];
+// pings since 10 Aug: [datetime, outcome, area]
+const P = [["2026-08-10T15:38","taken","Uptown"],["2026-08-10T17:34","taken","Uptown"],["2026-08-10T21:08","turned down","Kingsbridge"],
+ ["2026-08-12T16:36","taken","Uptown"],["2026-08-12T19:51","missed","Mill District"],["2026-08-12T20:02","turned down","Kingsbridge"],
+ ["2026-08-13T09:45","missed","Uptown"],["2026-08-13T14:51","missed","Kingsbridge"],["2026-08-14T16:32","missed","Uptown"],["2026-08-14T21:22","taken","Uptown"],
+ ["2026-08-19T13:28","missed","Uptown"],["2026-08-22T11:13","turned down","Uptown"],["2026-08-23T13:51","missed","Mill District"],["2026-08-28T19:28","missed","Mill District"]];
+const col = {taken:"var(--taken)","turned down":"var(--down)",missed:"var(--missed)"};
+
+// ---- panel A: stacked weekly pings
+(function(){
+  const H=220,Wd=820,L=44,R=20,T0=22,B=30,pw=Wd-L-R,ph=H-T0-B,n=W.length,slot=pw/n,bw=slot*0.55,max=15,y=v=>T0+ph*(1-v/max);
+  let s="";
+  for(let v=0;v<=max;v+=5) s+=`<line x1="${L}" x2="${L+pw}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}</text>`;
+  W.forEach((r,i)=>{
+    const cx=L+slot*(i+0.5); let base=0;
+    [[2,"taken"],[3,"turned down"],[4,"missed"]].forEach(([k,o],li)=>{
+      const v=r[k]; if(!v) return; const top=y(base+v), bot=y(base)-(base?2:0), last=(base+v===r[1]);
+      s+=`<rect x="${cx-bw/2}" y="${top}" width="${bw}" height="${Math.max(bot-top,1)}" rx="${last?3:0}" fill="${col[o]}"/>`; base+=v; });
+    s+=`<text x="${cx}" y="${y(r[1])-6}" text-anchor="middle" font-size="12" font-weight="bold" fill="var(--ink)">${r[1]}</text>`;
+    s+=`<text x="${cx}" y="${H-B+15}" text-anchor="middle" font-size="11" fill="var(--muted)">${label(r[0])}</text>`;
+    s+=`<rect data-tip="<b>Week of ${label(r[0])}</b><br>${r[1]} pings: ${r[2]} taken, ${r[3]} turned down, ${r[4]} missed" x="${cx-slot/2}" y="${T0}" width="${slot}" height="${ph}" fill="transparent"/>`;
+  });
+  const rx=L+slot*(6+2/7);
+  s+=`<line x1="${rx}" x2="${rx}" y1="${T0-6}" y2="${y(0)}" stroke="var(--ink2)" stroke-dasharray="5 4" stroke-width="1.5"/><text x="${rx+6}" y="${T0+2}" font-size="11" fill="var(--ink2)">4.2 released 12 Aug</text>`;
+  s+=`<line x1="${L+4}" x2="${L+slot*6-4}" y1="${y(12)}" y2="${y(12)}" stroke="var(--ink)" stroke-width="2"/><text x="${L+slot*3}" y="${y(12)-16}" text-anchor="middle" font-size="12" font-weight="bold" fill="var(--ink)">Avg 12 a week</text>`;
+  const svg=document.getElementById("a"); svg.innerHTML=s; attach(svg);
+})();
+
+// ---- panel B: ping timeline
+(function(){
+  const Wd=820,H=190,L=24,R=24,pw=Wd-L-R, d0=new Date("2026-08-10T00:00"), d1=new Date("2026-09-07T00:00");
+  const x=d=>L+pw*((new Date(d)-d0)/(d1-d0)), rowP=70, rowT=140;
+  let s="";
+  for(let d=new Date(d0); d<d1; d.setDate(d.getDate()+7)) s+=`<line x1="${x(d)}" x2="${x(d)}" y1="30" y2="${H-26}" stroke="var(--grid)"/><text x="${x(d)}" y="${H-8}" text-anchor="middle" font-size="11" fill="var(--muted)">${label(d.toISOString().slice(0,10))}</text>`;
+  s+=`<text x="${L}" y="${rowP-26}" font-size="11" fill="var(--ink2)">Pings</text><text x="${L}" y="${rowT-26}" font-size="11" fill="var(--ink2)">Handler tickets</text>`;
+  s+=`<line x1="${L}" x2="${L+pw}" y1="${rowP}" y2="${rowP}" stroke="var(--grid)" stroke-width="2"/>`;
+  const rx=x("2026-08-12T09:00");
+  s+=`<line x1="${rx}" x2="${rx}" y1="26" y2="${H-26}" stroke="var(--ink2)" stroke-dasharray="5 4" stroke-width="1.5"/><text x="${rx+6}" y="38" font-size="11" fill="var(--ink2)">4.2 (12 Aug)</text>`;
+  P.forEach(([dt,o,a])=>{ const cx=x(dt), tp=`<b>${o}</b><br>${label(dt.slice(0,10))}, ${dt.slice(11)}<br>Callout area: ${a}`;
+    if(o==="taken") s+=`<circle data-tip="${tp}" cx="${cx}" cy="${rowP}" r="7" fill="${col[o]}" stroke="var(--surface)" stroke-width="2"/>`;
+    else if(o==="missed") s+=`<rect data-tip="${tp}" x="${cx-6}" y="${rowP-6}" width="12" height="12" fill="${col[o]}" stroke="var(--surface)" stroke-width="2"/>`;
+    else s+=`<path data-tip="${tp}" d="M${cx},${rowP-8} L${cx+8},${rowP} L${cx},${rowP+8} L${cx-8},${rowP} Z" fill="${col[o]}" stroke="var(--surface)" stroke-width="2"/>`; });
+  T.forEach(([id,d,txt],i)=>{ const cx=x(d+"T12:00"); s+=`<circle data-tip="<b>Ticket ${id}</b> (${label(d)})<br>${txt}" cx="${cx}" cy="${rowT}" r="6" fill="var(--tick)" stroke="var(--surface)" stroke-width="2"/>`; });
+  // gap annotations
+  const gap=(a,b,txt)=>{ s+=`<line x1="${x(a)+10}" x2="${x(b)-10}" y1="${rowP+26}" y2="${rowP+26}" stroke="var(--ink2)" stroke-width="1.5"/><text x="${(x(a)+x(b))/2}" y="${rowP+42}" text-anchor="middle" font-size="11" font-weight="bold" fill="var(--ink)">${txt}</text>`; };
+  gap("2026-08-14T21:22","2026-08-19T13:28","5 days");
+  gap("2026-08-23T13:51","2026-08-28T19:28","5 days");
+  gap("2026-08-28T19:28","2026-09-07T00:00","no pings to 6 Sep (9 days)");
+  const svg=document.getElementById("b"); svg.innerHTML=s; attach(svg);
+})();
+
+// ---- panel C: uptown callouts
+(function(){
+  const H=220,Wd=820,L=44,R=20,T0=22,B=30,pw=Wd-L-R,ph=H-T0-B,n=W.length,slot=pw/n,bw=slot*0.55,max=12,y=v=>T0+ph*(1-v/max);
+  let s="";
+  for(let v=0;v<=max;v+=4) s+=`<line x1="${L}" x2="${L+pw}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}</text>`;
+  W.forEach((r,i)=>{
+    const cx=L+slot*(i+0.5); let base=0;
+    [[6,"var(--taken)"],[7,"var(--other)"],[8,"var(--missed)"]].forEach(([k,c])=>{
+      const v=r[k]; if(!v) return; const top=y(base+v), bot=y(base)-(base?2:0);
+      s+=`<rect x="${cx-bw/2}" y="${top}" width="${bw}" height="${Math.max(bot-top,1)}" rx="${base+v===r[5]?3:0}" fill="${c}"/>`; base+=v; });
+    s+=`<text x="${cx}" y="${y(r[5])-6}" text-anchor="middle" font-size="12" font-weight="bold" fill="var(--ink)">${r[5]}</text>`;
+    s+=`<text x="${cx}" y="${H-B+15}" text-anchor="middle" font-size="11" fill="var(--muted)">${label(r[0])}</text>`;
+    s+=`<rect data-tip="<b>Week of ${label(r[0])}</b><br>${r[5]} callouts in Uptown<br>Farlight took ${r[6]}, others took ${r[7]}, unfilled ${r[8]}" x="${cx-slot/2}" y="${T0}" width="${slot}" height="${ph}" fill="transparent"/>`;
+  });
+  const rx=L+slot*(6+2/7);
+  s+=`<line x1="${rx}" x2="${rx}" y1="${T0-6}" y2="${y(0)}" stroke="var(--ink2)" stroke-dasharray="5 4" stroke-width="1.5"/>`;
+  const svg=document.getElementById("c"); svg.innerHTML=s; attach(svg);
+})();
+
+// ---- table
+const tbody=document.querySelector("#wk tbody");
+const tix = {"2026-06-29":"3006 bulk callout button; 3021 vest plate; 3027 gloves (none about pings)","2026-07-06":"","2026-07-13":"","2026-07-20":"","2026-07-27":"",
+ "2026-08-03":"","2026-08-10":"3049 password reset email slow (none about pings)","2026-08-17":"3060, 3071, 3081 (quiet); 3066 filters; 3084 map panel",
+ "2026-08-24":"3089, 3099, 3103, 3110, 3114 (quiet); 3107 console logs out","2026-08-31":"3120, 3130, 3139 (quiet); 3126 maintenance reminder"};
+const pc=(a,b)=>b===0&&a===0?"n/a":a===0?"n/a":((b/a-1)*100).toFixed(0)+"%";
+W.forEach((r,i)=>{
+  const prior=i? W[i-1][1]:null, vs=((r[1]/12-1)*100).toFixed(0)+"%";
+  const rate=r[1]?(r[2]/r[1]*100).toFixed(0)+"%":"n/a";
+  tbody.insertAdjacentHTML("beforeend",`<tr class="${i===6?'rel':''}"><td>${label(r[0])}</td><td>Linda Pruitt</td><td>${r[1]}</td><td>${prior===null?"":pc(prior,r[1])}</td><td>${i<6?"":vs}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${rate}</td><td>${r[5]}: ${r[6]} / ${r[7]} / ${r[8]}</td><td class="l">${tix[r[0]]||""}</td></tr>`);
+});
+</script>
+</body>
+</html>

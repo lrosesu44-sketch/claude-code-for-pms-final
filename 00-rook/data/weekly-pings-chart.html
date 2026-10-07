@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dispatch: unanswered pings and unfilled callouts, before and after 4.2</title>
+<style>
+  :root { --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781; --grid:#f0efec; --s1:#2a78d6; --s2:#eb6834; }
+  @media (prefers-color-scheme: dark) {
+    :root { --surface:#1a1a19; --ink:#ffffff; --ink2:#c3c2b7; --grid:#383835; --s1:#3987e5; --s2:#d95926; }
+  }
+  body { font-family: Arial, sans-serif; background:var(--surface); color:var(--ink); margin:24px; max-width:880px; }
+  h1 { font-size:18px; margin:0 0 4px; } h2 { font-size:15px; margin:28px 0 2px; }
+  p.sub { color:var(--ink2); font-size:13px; margin:0 0 8px; }
+  .hero { display:flex; gap:32px; margin:14px 0 4px; }
+  .hero div { font-size:12px; color:var(--ink2); }
+  .hero b { display:block; font-size:30px; color:var(--ink); line-height:1.1; }
+  svg text { font-family: Arial, sans-serif; }
+  #tip { position:fixed; pointer-events:none; background:var(--surface); color:var(--ink); border:1px solid var(--muted);
+         border-radius:4px; padding:6px 8px; font-size:12px; display:none; line-height:1.5; }
+  table { border-collapse:collapse; font-size:13px; margin-top:20px; width:100%; }
+  th, td { text-align:right; padding:4px 10px; border-bottom:1px solid var(--grid); }
+  th:first-child, td:first-child { text-align:left; }
+  tr.avg td { font-weight:bold; border-top:1px solid var(--muted); }
+  p.note { color:var(--ink2); font-size:12px; margin-top:12px; }
+</style>
+</head>
+<body>
+<h1>Dispatch since 4.2: unanswered pings and unfilled callouts</h1>
+<p class="sub">Weekly, 29 Jun to 6 Sep 2026. Dashed line = 4.2 release on 12 Aug. Horizontal lines = average for the weeks before (6) and after (3). The release week is left out of both averages.</p>
+
+<div class="hero">
+  <div><b>4.0 → 24.3</b>unanswered pings per week (about 6x)</div>
+  <div><b>5.1% → 10.8%</b>of callouts nobody took (about 2x)</div>
+</div>
+
+<h2>Unanswered (missed) pings per week</h2>
+<p class="sub">A ping is unanswered when nobody responded in time. Turned-down pings are not counted.</p>
+<svg id="c1" viewBox="0 0 820 300" width="100%" role="img" aria-label="Bar chart of missed pings per week: 2 to 6 before 4.2, 38 in the release week, then 28, 24 and 21."></svg>
+
+<h2>Callouts nobody took, as a share of all callouts</h2>
+<p class="sub">An unfilled callout is one where no ping was ever taken.</p>
+<svg id="c2" viewBox="0 0 820 300" width="100%" role="img" aria-label="Bar chart of the share of callouts with no taken ping: about 3 to 8 percent before 4.2, 12.7 percent in the release week, 14.0, 12.9 and then 5.5 percent."></svg>
+<div id="tip"></div>
+
+<table id="rows">
+  <caption style="text-align:left;color:var(--ink2);padding-bottom:6px">Rows used (rook-database: pings and callouts tables)</caption>
+  <thead><tr><th>Week starting</th><th>Callouts</th><th>Pings sent</th><th>Unanswered (missed)</th><th>Callouts nobody took</th><th>Share unfilled</th><th>Period</th></tr></thead>
+  <tbody></tbody>
+</table>
+<p class="note">Before = 29 Jun to 3 Aug. After = 17 Aug to 6 Sep. The week of 10 Aug contains the release (Wed 12 Aug), so it is shown but excluded from the averages.
+Unanswered-ping averages are per week (24 over 6 weeks, 73 over 3). Unfilled share is pooled: 43 of 837 callouts before, 40 of 372 after.
+The latest week (31 Aug) is back to 5.5%, near the old level; no data exists after 6 Sep.</p>
+
+<script>
+// [week, callouts, pings sent, missed, callouts with no taken ping]
+const rows = [
+ ["2026-06-29",141,172,3,9],["2026-07-06",139,170,4,8],["2026-07-13",138,174,6,5],["2026-07-20",144,176,5,12],
+ ["2026-07-27",137,170,4,5],["2026-08-03",138,172,2,4],["2026-08-10",110,177,38,14],["2026-08-17",121,158,28,17],
+ ["2026-08-24",124,162,24,16],["2026-08-31",127,165,21,7]
+];
+const label = d => new Date(d+"T00:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+const before = rows.slice(0,6), after = rows.slice(7);
+const sum = (g,k) => g.reduce((a,r)=>a+r[k],0);
+const tip = document.getElementById("tip");
+
+function barChart(id, vals, o) {
+  const W=820,H=300,L=50,R=20,T=24,B=44, pw=W-L-R, ph=H-T-B, n=vals.length, slot=pw/n, bw=slot*0.55;
+  const y = v => T + ph*(1-v/o.max);
+  let s = "";
+  for (let v=0; v<=o.max; v+=o.step) s += `<line x1="${L}" x2="${L+pw}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${o.fmt(v)}</text>`;
+  vals.forEach((v,i)=>{
+    const cx = L+slot*(i+0.5);
+    const ry = y(v), h = y(0)-ry;
+    s += `<path d="M${cx-bw/2},${y(0)} V${ry+4} Q${cx-bw/2},${ry} ${cx-bw/2+4},${ry} H${cx+bw/2-4} Q${cx+bw/2},${ry} ${cx+bw/2},${ry+4} V${y(0)} Z" fill="var(--s2)"${i===6?' fill-opacity="0.55"':''}/>`;
+    s += `<text x="${cx}" y="${H-B+16}" text-anchor="middle" font-size="11" fill="var(--muted)">${label(rows[i][0])}</text>`;
+    s += `<rect class="hit" data-i="${i}" x="${cx-slot/2}" y="${T}" width="${slot}" height="${ph}" fill="transparent"/>`;
+  });
+  s += `<text x="${L+pw/2}" y="${H-4}" text-anchor="middle" font-size="11" fill="var(--ink2)">Week starting</text>`;
+  // release line: Wed 12 Aug is 2/7 into bar 6
+  const rx = L + slot*(6 + 2/7);
+  s += `<line x1="${rx}" x2="${rx}" y1="${T-4}" y2="${y(0)}" stroke="var(--ink2)" stroke-dasharray="5 4" stroke-width="1.5"/>`;
+  s += `<text x="${rx-6}" y="${T+6}" text-anchor="end" font-size="11" fill="var(--ink2)">Before 4.2</text><text x="${rx+6}" y="${T+6}" font-size="11" fill="var(--ink2)">After 4.2 (12 Aug)</text>`;
+  // averages
+  const seg = (a,b,v,txt,anchor) => {
+    const x1 = L+slot*a+4, x2 = L+slot*b-4;
+    return `<line x1="${x1}" x2="${x2}" y1="${y(v)}" y2="${y(v)}" stroke="var(--ink)" stroke-width="2"/>` +
+           `<text x="${anchor==='mid'?(x1+x2)/2:x2}" y="${y(v)-7}" text-anchor="${anchor==='mid'?'middle':'end'}" font-size="13" font-weight="bold" fill="var(--ink)">${txt}</text>`;
+  };
+  s += seg(0,6,o.avgB,o.txtB,'mid') + seg(7,10,o.avgA,o.txtA,'mid');
+  const svg = document.getElementById(id); svg.innerHTML = s;
+  svg.addEventListener("mousemove", e => {
+    const t = e.target.closest(".hit"); if(!t){ tip.style.display="none"; return; }
+    tip.innerHTML = o.tip(+t.dataset.i); tip.style.display="block"; tip.style.left=(e.clientX+14)+"px"; tip.style.top=(e.clientY+14)+"px";
+  });
+  svg.addEventListener("mouseleave", ()=> tip.style.display="none");
+}
+
+const missedB = sum(before,3)/6, missedA = sum(after,3)/3;
+barChart("c1", rows.map(r=>r[3]), { max:40, step:10, fmt:v=>v,
+  avgB:missedB, avgA:missedA, txtB:`Avg ${missedB.toFixed(1)} a week`, txtA:`Avg ${missedA.toFixed(1)} a week`,
+  tip:i=>`<b>Week of ${label(rows[i][0])}</b><br>Unanswered: ${rows[i][3]}<br>Pings sent: ${rows[i][2]}`});
+
+const shareB = sum(before,4)/sum(before,1)*100, shareA = sum(after,4)/sum(after,1)*100;
+barChart("c2", rows.map(r=>r[4]/r[1]*100), { max:20, step:5, fmt:v=>v+"%",
+  avgB:shareB, avgA:shareA, txtB:`Avg ${shareB.toFixed(1)}%`, txtA:`Avg ${shareA.toFixed(1)}%`,
+  tip:i=>`<b>Week of ${label(rows[i][0])}</b><br>${rows[i][4]} of ${rows[i][1]} callouts unfilled (${(rows[i][4]/rows[i][1]*100).toFixed(1)}%)`});
+
+// table
+const tb = document.querySelector("#rows tbody");
+const period = i => i<6 ? "Before" : i===6 ? "Release week" : "After";
+rows.forEach((r,i)=> tb.insertAdjacentHTML("beforeend",
+  `<tr><td>${label(r[0])}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${(r[4]/r[1]*100).toFixed(1)}%</td><td>${period(i)}</td></tr>`));
+tb.insertAdjacentHTML("beforeend", `<tr class="avg"><td>Before (6 weeks)</td><td>${sum(before,1)}</td><td>${sum(before,2)}</td><td>${sum(before,3)} (${missedB.toFixed(1)}/wk)</td><td>${sum(before,4)}</td><td>${shareB.toFixed(1)}%</td><td></td></tr>`);
+tb.insertAdjacentHTML("beforeend", `<tr class="avg"><td>After (3 weeks)</td><td>${sum(after,1)}</td><td>${sum(after,2)}</td><td>${sum(after,3)} (${missedA.toFixed(1)}/wk)</td><td>${sum(after,4)}</td><td>${shareA.toFixed(1)}%</td><td></td></tr>`);
+</script>
+</body>
+</html>

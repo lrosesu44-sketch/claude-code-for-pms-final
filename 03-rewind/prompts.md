@@ -15,7 +15,13 @@ prompt library built from your own questions.
 ---
 
 ### 1.
+Cross-check against the handlers table to see if that provides any additional insights as to why the four were starved for pings, and why other pings were not taken.
 
 ### 2.
+Draft the questions for Wen and Marcus
 
 ### 3.
+Did this happen to everyone, or did it happen to some people much more than others?
+
+### 4.
+There is a lot of information to sift through: can you succinctly summarize what your main findings are so it is evident what the ping rate was before 4.2, what the ping rate was after 4.2, and the percent change. Include any other information in the summary that would be beneficial to figuring
