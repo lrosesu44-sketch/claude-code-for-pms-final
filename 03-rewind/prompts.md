@@ -24,4 +24,4 @@ Draft the questions for Wen and Marcus
 Did this happen to everyone, or did it happen to some people much more than others?
 
 ### 4.
-There is a lot of information to sift through: can you succinctly summarize what your main findings are so it is evident what the ping rate was before 4.2, what the ping rate was after 4.2, and the percent change. Include any other information in the summary that would be beneficial to figuring
+There is a lot of information to sift through: can you succinctly summarize what your main findings are so it is evident what the ping rate was before 4.2, what the ping rate was after 4.2, and the percent change. Include any other information in the summary that would be beneficial to figuring out what happened.
