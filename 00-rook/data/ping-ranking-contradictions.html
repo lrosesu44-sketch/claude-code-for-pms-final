@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dispatch ping ranking: what's expected vs where it breaks</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --ink:#1f2933; --muted:#5f6c7b; --line:#d5dbe2; --bg:#ffffff; --card:#f6f8fa;
+          --ok:#2f7d4f; --okbg:#e7f4ec; --warn:#b26a00; --warnbg:#fff3df; --bad:#b3261e; --badbg:#fde8e6; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e8ecf0; --muted:#9aa7b4; --line:#3a4450; --bg:#14181d; --card:#1c2229;
+            --ok:#6fcf97; --okbg:#1c3327; --warn:#f2b45a; --warnbg:#3a2c12; --bad:#ff8a80; --badbg:#3d1d1a; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:24px; font:15px/1.5 -apple-system,Segoe UI,Arial,sans-serif; color:var(--ink); background:var(--bg); }
+  h1 { font-size:22px; margin:0 0 4px; }
+  .sub { color:var(--muted); margin:0 0 20px; max-width:880px; }
+  .legend { display:flex; gap:18px; flex-wrap:wrap; margin:0 0 22px; font-size:13px; color:var(--muted); }
+  .legend span::before { content:""; display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:-1px; }
+  .l-ok::before { background:var(--ok); } .l-warn::before { background:var(--warn); } .l-bad::before { background:var(--bad); }
+  .flow { display:grid; gap:0; max-width:980px; }
+  .step { display:grid; grid-template-columns:44px 1fr; gap:14px; }
+  .rail { display:flex; flex-direction:column; align-items:center; }
+  .num { width:36px; height:36px; border-radius:50%; background:var(--ink); color:var(--bg); font-weight:700; display:flex; align-items:center; justify-content:center; flex:none; }
+  .line { width:2px; background:var(--line); flex:1; min-height:12px; }
+  .body { padding-bottom:22px; }
+  .title { font-weight:700; font-size:16px; margin:4px 0 8px; }
+  .file { font-weight:400; font-size:12px; color:var(--muted); font-family:Consolas,monospace; margin-left:8px; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media (max-width:720px){ .row{grid-template-columns:1fr;} }
+  .box { border-radius:8px; padding:10px 12px; border:1px solid var(--line); background:var(--card); font-size:14px; }
+  .box h4 { margin:0 0 4px; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+  .expected { border-left:4px solid var(--ok); background:var(--okbg); }
+  .contra { border-left:4px solid var(--warn); background:var(--warnbg); }
+  .norm { border-left:4px solid var(--bad); background:var(--badbg); margin-top:10px; }
+  .impact { margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:13px; color:var(--muted); }
+  @media (max-width:720px){ .impact{grid-template-columns:1fr;} }
+  .impact b { color:var(--ink); }
+  .side { max-width:980px; margin-top:6px; border:1px dashed var(--line); border-radius:10px; padding:14px 16px; }
+  .side .title { margin-top:0; }
+  .takeaway { max-width:980px; margin-top:22px; padding:14px 16px; border-radius:10px; background:var(--card); border:1px solid var(--line); }
+  .takeaway h3 { margin:0 0 6px; font-size:15px; }
+  .takeaway ul { margin:6px 0 0 18px; padding:0; }
+  .foot { color:var(--muted); font-size:12px; margin-top:14px; max-width:980px; }
+</style>
+</head>
+<body>
+<h1>How a ping gets to a responder: what's expected vs where it breaks</h1>
+<p class="sub">Read top to bottom. Green is what the README and docs say should happen. Amber is where the code, the wiki or each other disagree. Red is something in the data that is out of the norm. Everything here is read from the code, the wiki and the database. Nothing is confirmed by engineering yet.</p>
+
+<div class="legend">
+  <span class="l-ok">Expected (README / docs)</span>
+  <span class="l-warn">Contradiction found</span>
+  <span class="l-bad">Out of the norm in the data</span>
+</div>
+
+<div class="flow">
+
+  <div class="step">
+    <div class="rail"><div class="num">1</div><div class="line"></div></div>
+    <div class="body">
+      <div class="title">Build the list of who's free <span class="file">availability.py, routing.py</span></div>
+      <div class="row">
+        <div class="box expected"><h4>Expected</h4>README: "Everyone available is on the list. Nothing decides <i>whether</i> somebody gets asked."</div>
+        <div class="box contra"><h4>Contradiction</h4>The list is only people free <i>in the callout's area</i>. The availability file says it "writes" the record but only reads it, so something outside this folder controls who counts as available.</div>
+      </div>
+      <div class="box norm"><h4>Out of the norm</h4>After 4.2, pings in the four responders' areas went to someone from another area 67% of the time (before: 16%). Everywhere else it barely moved (18% to 20%).</div>
+      <div class="impact">
+        <div><b>Handler:</b> believes the local responder is always in play, so a quiet responder looks like a "quiet week", not a ranking problem.</div>
+        <div><b>Responder:</b> can drop off the list without being told, because no decline or miss was ever recorded against them.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="rail"><div class="num">2</div><div class="line"></div></div>
+    <div class="body">
+      <div class="title">Score and rank them <span class="file">routing.py, history.py, config.py</span></div>
+      <div class="row">
+        <div class="box expected"><h4>Expected</h4>A "recent acceptance" score: how often they've been saying yes lately. It carries 25% of the ranking (was 40% before 4.2). Proximity carries 60%.</div>
+        <div class="box contra"><h4>Contradiction</h4>The score isn't "recent". It has no time window and never fades. It's also held only in memory, so a restart would put everyone back to neutral. A 2019 note asks whether it should ease back; it was left alone.</div>
+      </div>
+      <div class="box norm"><h4>Out of the norm</h4>Replaying each responder's pings through the rules: Vesper, Farlight, The Undertow and Meteor Mite sit at <b>0.00</b> by 6 Sep (they were 0.84 to 1.00 before 4.2). The other twelve are 0.72 to 1.00. Meteor Mite and The Gale share an area and a handler: 0.00 against 0.96.</div>
+      <div class="impact">
+        <div><b>Handler:</b> can't see or explain a responder's score. Nothing in the console is described that shows it.</div>
+        <div><b>Responder:</b> a bad stretch follows them with no expiry date, however good the rest of their record is.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="rail"><div class="num">3</div><div class="line"></div></div>
+    <div class="body">
+      <div class="title">Send the ping and wait 60 seconds <span class="file">offer.py</span></div>
+      <div class="row">
+        <div class="box expected"><h4>Expected</h4>The offer goes to the responder's phone and they have a fair window to answer. The wait was deliberately cut from 90 to 60 seconds in 4.2. Handlers were told.</div>
+        <div class="box contra"><h4>Contradiction</h4>The sending, checking and withdrawing code is empty here, so we can't see how the ping looks, sounds or whether it arrived. "Missed" and "turned down" are tracked separately and then treated the same. Nothing shows responders were told about the new wait.</div>
+      </div>
+      <div class="box norm"><h4>Out of the norm</h4>The four missed about 59% of their pings after 4.2 (3% before). The other twelve missed about 14% (2% before). Turn-downs stayed flat for both groups.</div>
+      <div class="impact">
+        <div><b>Handler:</b> sees "missed" and can't tell whether the phone never received it or the person didn't answer in time. Seven handlers asked whether 60 seconds was normal.</div>
+        <div><b>Responder:</b> "phone buzzed, by the time I unlocked it, gone." A slow delivery counts against them as if they'd ignored it.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="rail"><div class="num">4</div></div>
+    <div class="body">
+      <div class="title">Update the score after the answer <span class="file">offer.py, history.py</span></div>
+      <div class="row">
+        <div class="box expected"><h4>Expected</h4>A yes earns credit. A no costs points. Over time scores reflect behaviour.</div>
+        <div class="box contra"><h4>Contradiction</h4>Taking a callout adds 0.08. Missing or declining takes off 0.12. That means a responder needs to say yes to about 60% of pings just to stay level. The <i>only</i> thing that ever adds points is taking a callout, and you can't take one you're never offered.</div>
+      </div>
+      <div class="box norm"><h4>Out of the norm</h4>The four got 49 pings a week before 4.2 and about 8 after. Farlight went from 12 a week to none after 28 Aug. The overall recovery came from other responders picking up the work, not from the four coming back.</div>
+      <div class="impact">
+        <div><b>Handler:</b> a responder they look after can go quiet and there's no lever to bring them back.</div>
+        <div><b>Responder:</b> once at the floor, there is no route back to being offered work.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="side">
+  <div class="title">Side path: a handler overrides the routing <span class="file">wiki: Routing Override Audit Log</span></div>
+  <div class="row">
+    <div class="box expected"><h4>Expected</h4>A handler can pick someone other than the recommended responder, and every override is logged: who, when, who they picked, why.</div>
+    <div class="box contra"><h4>Contradiction</h4>The March one-pager says "ready to build". The 4.0 notes (7 Apr) say it shipped. The changelog lists it. The database has no override table, the code in this folder has no override path, and no ticket mentions overrides. All four can't be right.</div>
+  </div>
+  <div class="box norm"><h4>Checked, and not out of the norm</h4>Every callout before, during and after 4.2 has at least one ping, so there's no sign of work being handed out without a ping. That narrows the question but doesn't answer whether an override touches a score.</div>
+  <div class="impact">
+    <div><b>Handler:</b> their overrides may be unrecorded, so they can't prove a pattern in either direction.</div>
+    <div><b>Responder:</b> if passed over, there's no record that can explain it, which is the very complaint the log was meant to fix.</div>
+  </div>
+</div>
+
+<div class="takeaway">
+  <h3>The story in one paragraph</h3>
+  The docs describe a fair, recent, order-only ranking where nobody is excluded. The code shows a permanent score with an easy way down and one way up that needs offers the person is no longer getting. 4.2 made the shorter wait more likely to trigger the penalty. The four responders show what that looks like at the extreme.
+  <ul>
+    <li><b>Strongest signal:</b> the four are the only responders to reach 0.00, and that happened after 4.2.</li>
+    <li><b>Biggest unknowns:</b> who sets "available", whether anything else changes scores, whether pings were delivered, and whether the override log exists.</li>
+  </ul>
+</div>
+<p class="foot">Scores are a replay of each ping log through the rules in history.py, starting everyone at 0.5 on 29 Jun. They are reconstructions, not live values. Data runs 29 Jun to 6 Sep 2026. Before = before 10 Aug; after = 17 Aug onward. Policy 4.1: nothing here asks why any individual responder missed.</p>
+</body>
+</html>
