@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Review checklist: production-requirements-brief.md (tracy1004 repo)</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 980px; margin: 24px auto; padding: 0 16px; color: #1a1a1a; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  h2 { font-size: 17px; margin-top: 32px; border-bottom: 2px solid #ddd; padding-bottom: 4px; }
+  .sub { color: #555; font-size: 13px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { border: 1px solid #ccc; padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: #f0f0f0; }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 10px; font-weight: bold; font-size: 12px; }
+  .Present { background: #c8e6c9; color: #1b5e20; }
+  .Partial { background: #fff3b0; color: #6b5200; }
+  .Missing { background: #f8c9c9; color: #8a1111; }
+  tr.r-Present td:first-child, tr.r-Partial td:first-child, tr.r-Missing td:first-child { border-left: 6px solid; }
+  tr.r-Present td:first-child { border-left-color: #43a047; }
+  tr.r-Partial td:first-child { border-left-color: #f2c200; }
+  tr.r-Missing td:first-child { border-left-color: #d32f2f; }
+  .score { display: flex; gap: 12px; margin: 12px 0; }
+  .score div { flex: 1; text-align: center; padding: 12px; border-radius: 8px; font-size: 13px; }
+  .score b { display: block; font-size: 28px; }
+  .cols { display: flex; gap: 12px; }
+  .cols > div { flex: 1; border-radius: 8px; padding: 12px; font-size: 14px; }
+  .cols h3 { margin: 0 0 6px; font-size: 14px; }
+  .cols ul { margin: 0; padding-left: 18px; }
+  .in { background: #e8f5e9; border: 1px solid #81c784; }
+  .decide { background: #fff8d6; border: 1px solid #e6c200; }
+  .diff { background: #fdecea; border: 1px solid #e57373; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .card { border: 1px solid #ccc; border-left: 6px solid; border-radius: 6px; padding: 10px 12px; font-size: 14px; }
+  .card h3 { margin: 0 0 6px; font-size: 14px; }
+  .card .ask { color: #444; font-size: 13px; margin-top: 6px; }
+  .c-open { border-left-color: #f2c200; background: #fffdf0; }
+  .c-gap { border-left-color: #1976d2; background: #f3f8fe; }
+  .c-unnamed { border-left-color: #757575; background: #f5f5f5; }
+  .legend span { margin-right: 12px; }
+</style>
+</head>
+<body>
+<h1>Review checklist: production-requirements-brief.md</h1>
+<p class="sub">Source: github.com/tracy1004/claude-code-for-pms-final, 05-super-speed/production-requirements-brief.md (main). Read in full on 9 Oct 2026. First review, so no "Was" column.</p>
+
+<div class="score">
+  <div class="Present"><b>5</b>Present</div>
+  <div class="Partial"><b>5</b>Partial</div>
+  <div class="Missing"><b>0</b>Missing</div>
+</div>
+<p><b>Verdict:</b> strong on problem, users, scenarios and gaps. Not ready to go further until the owner is named, the scope is reconciled, the cost of doing nothing is stated, and timing and resources are asked for.</p>
+
+<h2>Verdicts</h2>
+<p class="sub">Sorted by Status (Present, Partial, Missing), then Check number.</p>
+<table>
+  <tr><th>#</th><th>Check</th><th>Status</th><th>Evidence / note</th></tr>
+  <tr class="r-Present"><td>2</td><td>Success measure</td><td><span class="tag Present">Present</span></td><td>Section 6 table gives before, now and a proposed target per measure. Targets are "proposed, not agreed", several baselines are "unknown" until measured, and no calendar date is given (only "within 6 weeks of release").</td></tr>
+  <tr class="r-Present"><td>4</td><td>Problem before solution</td><td><span class="tag Present">Present</span></td><td>Section 0 states the problem with figures, then lists what is and isn't established. Options start in Section 3.</td></tr>
+  <tr class="r-Present"><td>5</td><td>Audience / users</td><td><span class="tag Present">Present</span></td><td>Section 2: primary user (impacted responder), anchor persona (Vesper), secondary users (handlers, busy responders, quartermasters).</td></tr>
+  <tr class="r-Present"><td>6</td><td>User need</td><td><span class="tag Present">Present</span></td><td>Scenarios S1-S8, each written from the user's side with evidence.</td></tr>
+  <tr class="r-Present"><td>8</td><td>Gaps</td><td><span class="tag Present">Present</span></td><td>"What is not established" (Section 0), open questions with owners (Section 7), caveats on evidence (Section 9). See the unnamed gaps below.</td></tr>
+  <tr class="r-Partial"><td>1</td><td>Owner</td><td><span class="tag Partial">Partial</span></td><td>Header says "Owner: Dispatch PM", a role with no name. No delivery owner for the ranking, app, console, monitoring or availability workstreams.</td></tr>
+  <tr class="r-Partial"><td>3</td><td>Scope consistency</td><td><span class="tag Partial">Partial</span></td><td>Option B grew beyond the opening problem. See the comparison below.</td></tr>
+  <tr class="r-Partial"><td>7</td><td>Impact of fixing / not fixing</td><td><span class="tag Partial">Partial</span></td><td>"What changes" is covered for every option. Doing nothing is not an option or a section; it is only implied by "A alone leaves the four where they are". The brief doesn't state the cost in callouts nobody took.</td></tr>
+  <tr class="r-Partial"><td>9</td><td>Deadlines / timing</td><td><span class="tag Partial">Partial</span></td><td>Only relative timing: "reply now" (Nadia), "triage now" (safety ticket), "2-week baseline", "6 weeks of release". "Nothing here is committed or scheduled." No release or decision date, and no ask to Helen for one.</td></tr>
+  <tr class="r-Partial"><td>10</td><td>Resources</td><td><span class="tag Partial">Partial</span></td><td>People and approvals are named as dependencies (Wen, Marcus, Sofia, Ravi, Security, Supply owner). No capacity or confirmation. Effort is given only for A ("small"). The Tech Ops lead is unidentified and the monitoring tool is undecided.</td></tr>
+</table>
+
+<h2>Scope: start vs end</h2>
+<div class="cols">
+  <div class="in"><h3>In Option B (selected)</h3><ul>
+    <li>Option A first (R1)</li>
+    <li>Recovery and floor (R2, R3)</li>
+    <li>Phone app (P1-P5)</li>
+    <li>Handler view (H1-H4)</li>
+    <li>Real user monitoring (M1-M6)</li>
+    <li>Away and Available (V1-V3), written to the availability record</li>
+  </ul></div>
+  <div class="decide"><h3>Needs a decision</h3><ul>
+    <li>Whether the wait goes back to 90s (Helen)</li>
+    <li>Auto-return from Away, and the maximum away length</li>
+    <li>RUM tool: connector or in-house (Marcus)</li>
+    <li>Security sign-off on what M1 collects</li>
+    <li>Whether Wen, Marcus, Security and Helen agree to B at all</li>
+  </ul></div>
+  <div class="diff"><h3>Differences found</h3><ul>
+    <li>The opening problem covers the quiet four and handlers who can't tell. Planned time away (S7) and stuck unavailable (S8) appear only later, and their evidence is "not in the data" and "not tested".</li>
+    <li>RUM and Away/Available are marked "new" and added to B, so "one release" now sits next to "plus app, console and monitoring work" and a Security review before build.</li>
+    <li>B "includes A", but the 90s wait is only "if Helen approves", and P2 says "the wait stays at the product value".</li>
+    <li>The "doesn't do" list rules out Availability Confidence, yet V1/V2 change what Supply reads from the availability record.</li>
+    <li>The header says "Draft for Helen" and the recommendation says "you have chosen Option B", while the status says Helen still needs to agree.</li>
+  </ul></div>
+</div>
+
+<h2>Follow-up</h2>
+<p class="legend"><span class="tag Partial">Partial: needs an answer</span></p>
+<div class="cards">
+  <div class="card c-open"><h3>Owner (1)</h3>Put a name on the "Dispatch PM" owner line. Name a delivery owner for each workstream (ranking, app, console, monitoring, availability).<div class="ask">Ask: the author, then Helen, Wen, Marcus, Sofia.</div></div>
+  <div class="card c-open"><h3>Scope (3)</h3>Decide whether S7/S8 (Away, Available) and RUM belong in this brief or in a separate one. Reconcile "includes A" with the 90s wait. Align the header with the recommendation wording.<div class="ask">Ask: the author, with Helen.</div></div>
+  <div class="card c-open"><h3>Not fixing (7)</h3>Add a "do nothing" line: what happens to the four, to handlers, and to callouts nobody took if nothing ships. Say who is hurt and what Supply sees.<div class="ask">Ask: Ravi for the numbers after 6 Sep.</div></div>
+  <div class="card c-open"><h3>Timing (9)</h3>What date does Helen need for the decision and for a release? How long does the Security review take? Who owns the "now" items (Nadia's reply, the grapple-line safety ticket) and by when?<div class="ask">Ask: Helen (dates), Security (lead time), Nadia.</div></div>
+  <div class="card c-open"><h3>Resources (10)</h3>Effort for B is not sized, only A. The Tech Ops lead is not identified. The RUM tool is undecided. Nobody has confirmed capacity.<div class="ask">Ask: Marcus (effort, tool), Helen (Tech Ops lead), Sofia, the app team.</div></div>
+</div>
+
+<h2>Gaps</h2>
+<p class="legend"><span class="tag" style="background:#bbdefb;color:#0d47a1">Named in the brief</span> <span class="tag" style="background:#e0e0e0;color:#333">Not named in the brief</span></p>
+<div class="cards">
+  <div class="card c-gap"><h3>Cause not established</h3>Wait, weights, or both. The brief says do not state a cause as fact.<div class="ask">Ask: Wen Li.</div></div>
+  <div class="card c-gap"><h3>Wen's answer owed since 14 Aug</h3>Was the weighting meant to apply to decliners?<div class="ask">Ask: Wen Li.</div></div>
+  <div class="card c-gap"><h3>Data stops 6-7 Sep</h3>"Now" figures need refreshing.<div class="ask">Ask: Ravi.</div></div>
+  <div class="card c-gap"><h3>No responder or quartermaster voice</h3>Evidence is from handlers only. Interviews used different questions.<div class="ask">Ask: Sofia.</div></div>
+  <div class="card c-gap"><h3>No phone-side data</h3>"Never saw it" and "mis-tapped" are untested until M1 runs.<div class="ask">Ask: Marcus.</div></div>
+  <div class="card c-gap"><h3>Availability today</h3>Who sets it and from where is unverified. V1/V2 scope depends on it.<div class="ask">Ask: Wen and Sofia.</div></div>
+  <div class="card c-gap"><h3>Policy 4.1 and RUM</h3>New collection from phones (device model, version, network) needs Security sign-off.<div class="ask">Ask: Security.</div></div>
+  <div class="card c-gap"><h3>Tech Ops lead unidentified</h3>The brief assumes a team that owns app and push health.<div class="ask">Ask: Helen.</div></div>
+  <div class="card c-unnamed"><h3>Ticket count conflict</h3>The caveats say "tickets from all 15" handlers, but Section 1b shows Aunt Dot, Kip and Halloran with 0 tickets (Ambrose has 1).<div class="ask">Fix: the author.</div></div>
+  <div class="card c-unnamed"><h3>Seasonality not mentioned</h3>Priya and Marcus both said "seasonal". The brief never tests or rules it out, and notes no prior-year data.<div class="ask">Ask: Ravi, who holds last year's numbers?</div></div>
+  <div class="card c-unnamed"><h3>Callouts nobody took</h3>The brief reports pings, tickets and acceptance, not the share of callouts left unfilled, which is the customer-facing cost.<div class="ask">Ask: Ravi.</div></div>
+  <div class="card c-unnamed"><h3>"Now" actions have no owner or date</h3>Nadia's reply to about 45 tickets and the grapple-line safety triage are both urgent and unowned.<div class="ask">Ask: Helen, Nadia.</div></div>
+</div>
+</body>
+</html>
