@@ -1,6 +1,6 @@
 # Quiet responders: four changes, plus seven extras to choose from
 
-**To:** Helen Achebe  **From:** [your name]  **Date:** [date]  **Status:** Draft. Prototype built (`prototype.html`); nothing sent.
+**To:** Helen Achebe  **From:** Laurie  **Date:** October 9, 2026  **Status:** Draft. Prototype built (`prototype.html`); nothing sent.
 
 ## The problem
 After 4.2, four responders (Vesper, Farlight, The Undertow, Meteor Mite) went from about 49 pings a week combined to 8. They miss a ping, their rank drops, they're offered less, and nothing lets them climb back. Callouts nobody took doubled (5.1% to 10.8%). Handlers see "one card dead quiet, the other on fire" (Kip). Responders see "gone before I got a thumb on the screen" (Aunt Dot).
