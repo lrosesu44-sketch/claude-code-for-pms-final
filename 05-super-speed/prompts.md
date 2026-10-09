@@ -37,3 +37,55 @@ Check whether the phone app can send in-app messages
 ### 6.
 
 One additional tweak: Add a closing that addresses Helen's request for a prototype - that if she is in agreement with the proposed solutions, to let me know and I can turn around a prototype for her
+
+### 7.
+
+Rename helen-brief.md to brief.md
+
+### 8.
+
+Save the brief exactly as it stands now as 05-super-speed/brief.md. Show me the file when it's done.
+
+### 9.
+
+Take the brief you just wrote and build me a working prototype, an actual screen I can click through, not a description of one. Show me this happening to Farlight specifically, using her name, the way her handler would see it. Save it as 05-super-speed/prototype.html, a single file I can just open in my browser. Show me where this would actually happen, and make at least one thing on it respond when I click it.
+
+### 10.
+
+Is this prototype based on the current foundational app?
+
+### 11.
+
+Is it possible to create the prototype should that it uses the current console or screenshots with a banner at the top indicating it is a prototype inclusive of bug fixes and enhancements?
+Also, while the ping timeout is not settled, please increase it to 75 for the prototype. 
+
+* Can you add a timer that displays for handler and responder so they are aware how much time is left before the responder misses the ping? 
+* For Farlight, add a weekly visual of meaningful metrics.
+   * If the responder should have insight to any of the ping details (incident type, location, # of people involved, etc.), come up with a way to display that info so they aren't walking into an incident blindly.
+* For the handler, is there a way to override the ping timeout? If not, add it and the ability to capture the reason.
+
+
+Cross-check the above plus the solutions presented in the brief to Helen to confirm the prototype is inclusive of all changes being requested.
+
+### 12.
+
+In the responder view, they see: "Your next few pings won't count a miss against you." - what does "next few" quantify as? Do we have that number defined anywhere?
+
+### 13.
+
+Yes, update the prototype and add it to Wen's questions
+
+### 14.
+
+1. Once a responder takes a ping, they should see the details of the incident.
+2. It should be easier for the handler to determine whether the responder is Active on a current incident and when the incident is Resolved or Closed after it was taken.
+3. The week-by-week the handler sees for the responder is helpful but busy: do you have a recommendation how to make this info more digestible and actionable, when needed. For example, if a handler sees 100% misses, can they do a test ping?
+4. Is it necessary for any handler to see more than one responder's info?
+
+### 15.
+
+Please update the brief to highlight the "bells and whistles" out of the original scope, and also provide a summary here of all the changes before committing.
+
+### 16.
+
+trim the brief to one page

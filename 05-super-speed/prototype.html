@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rook Dispatch: Farlight (prototype)</title>
+<style>
+  :root{
+    --ink:#1d2330; --mute:#5d6678; --line:#dde1e8; --bg:#f3f5f8; --card:#fff;
+    --brand:#243b6b; --amber:#b25e00; --amberbg:#fff3e0; --blue:#1b5fb0; --bluebg:#e6f0fb;
+    --green:#1e7b4a; --greenbg:#e5f5ec; --red:#b3261e; --redbg:#fdeceb; --purple:#5b3aa8; --purplebg:#e9e1fb;
+    --taken:#1e7b4a; --down:#8a93a6; --missed:#c0392b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg)}
+  .banner{background:#fff8d6;border-bottom:1px solid #e8d98a;padding:9px 16px;font-size:12.5px;color:#5b4b00}
+  .top{display:flex;align-items:center;justify-content:space-between;background:var(--brand);color:#fff;padding:10px 18px}
+  .top span{font-size:13px;opacity:.9}
+  .shell{display:grid;grid-template-columns:170px 1fr 330px;gap:18px;padding:18px;max-width:1320px;margin:0 auto}
+  nav{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;height:max-content}
+  nav a{display:block;padding:8px 10px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:13.5px}
+  nav a.on{background:var(--bluebg);color:var(--blue);font-weight:600}
+  nav a.sub{padding-left:22px;font-size:13px}
+  nav small{display:block;color:var(--mute);padding:8px 10px 2px;text-transform:uppercase;font-size:11px;letter-spacing:.6px}
+  main{min-width:0}
+  .crumb{color:var(--mute);font-size:13px;margin-bottom:6px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:16px}
+  .head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  h1{font-size:22px;margin:0}
+  h2{font-size:13px;margin:0 0 10px;text-transform:uppercase;letter-spacing:.5px;color:var(--mute)}
+  .meta{color:var(--mute);font-size:13px}
+  .chip{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700}
+  .chip.attn{background:var(--amberbg);color:var(--amber)}
+  .chip.rec{background:var(--bluebg);color:var(--blue)}
+  .chip.ping{background:var(--bluebg);color:var(--blue)}
+  .chip.active{background:var(--greenbg);color:var(--green)}
+  .chip.resolved{background:var(--purplebg);color:var(--purple)}
+  .chip.ok{background:var(--greenbg);color:var(--green)}
+  .new{display:inline-block;background:var(--purplebg);color:var(--purple);font-size:10.5px;font-weight:800;padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:1px;letter-spacing:.3px}
+  .sum{border:1px solid #f0c27a;background:var(--amberbg);border-radius:8px;padding:14px 16px;margin-top:14px}
+  .sum.rec{border-color:#9ec3ee;background:var(--bluebg)}
+  .sum.inc{border-color:#a8d9bd;background:var(--greenbg)}
+  .sum.ok{border-color:#a8d9bd;background:var(--greenbg)}
+  .sumtitle{font-size:17px;font-weight:800;margin-bottom:4px}
+  .sumtext{margin:0 0 10px;font-size:13.5px}
+  .sumnext{font-size:12px;color:var(--mute);margin-top:6px}
+  details{margin-top:10px;font-size:13px}
+  details summary{cursor:pointer;color:var(--blue);font-weight:600}
+  .notice{border:1px solid #cdd6e8;background:#f2f6fd;border-radius:8px;padding:10px 12px;font-size:13px;display:flex;gap:10px;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+  .notice button{background:none;border:0;color:var(--blue);text-decoration:underline;padding:0;font-size:12px;cursor:pointer}
+  .card.live{border:2px solid var(--blue)}
+  .card.live.missed{border-color:var(--missed)}
+  .card.live.taken{border-color:var(--taken)}
+  .card.test{border:2px dashed var(--purple)}
+  .timerrow{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:6px 0 10px}
+  .timer{font-size:40px;font-weight:800;min-width:92px;font-variant-numeric:tabular-nums}
+  .tbar{flex:1;min-width:160px;height:12px;background:#e9edf3;border-radius:6px;overflow:hidden}
+  .tbar i{display:block;height:100%;width:100%;background:var(--green);transition:width .1s linear,background .3s}
+  .t-ok{color:var(--green)}.t-warn{color:var(--amber)}.t-low{color:var(--red)}
+  dl.details{display:grid;grid-template-columns:130px 1fr;gap:6px 12px;margin:10px 0 0;font-size:13.5px}
+  dl.details dt{color:var(--mute)}
+  dl.details dd{margin:0}
+  .src{font-size:10.5px;padding:1px 6px;border-radius:4px;margin-left:6px;font-weight:700;font-style:normal}
+  .src.real{background:var(--greenbg);color:var(--green)}
+  .src.prop{background:var(--purplebg);color:var(--purple)}
+  .sourcekey{font-size:12px;color:var(--mute);margin-top:10px}
+  .btn{border:1px solid var(--brand);background:var(--brand);color:#fff;border-radius:8px;padding:9px 14px;font:inherit;font-weight:700;cursor:pointer}
+  .btn.ghost{background:#fff;color:var(--brand)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn:hover:not(:disabled){filter:brightness(1.08)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .statusmsg{margin-top:10px;font-size:13.5px}
+  .steps{display:flex;gap:6px;margin:6px 0 10px}
+  .steps div{flex:1;text-align:center;padding:7px 4px;border-radius:6px;background:#eef1f6;color:var(--mute);font-size:12.5px;font-weight:700}
+  .steps div.done{background:var(--greenbg);color:var(--green)}
+  .steps div.now{background:var(--brand);color:#fff}
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+  .tile{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+  .tile.bad{border-color:#eeb5b0;background:var(--redbg)}
+  .tile.good{border-color:#a8d9bd;background:var(--greenbg)}
+  .tile .k{font-size:11.5px;color:var(--mute)}
+  .tile .v{font-size:24px;font-weight:800;line-height:1.2}
+  .tile .u{font-size:11.5px;color:var(--mute)}
+  .chart h3{margin:0 0 2px;font-size:13px}
+  .chart p{margin:0 0 6px;font-size:11.5px;color:var(--mute)}
+  .bars{display:flex;align-items:flex-end;gap:5px;height:96px;border-bottom:1px solid var(--line);position:relative}
+  .bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;height:100%;cursor:pointer;position:relative}
+  .bar:hover,.bar.sel{background:#eef2f9}
+  .bar i{display:block;width:100%}
+  .bar b{position:absolute;left:0;right:0;text-align:center;font-size:10px;color:var(--mute);font-weight:600}
+  .lbls{display:flex;gap:5px;font-size:10px;color:var(--mute);margin-top:3px}
+  .lbls span{flex:1;text-align:center;overflow:hidden;white-space:nowrap}
+  .marker{position:absolute;top:0;bottom:0;border-left:2px dashed var(--red);pointer-events:none}
+  .marker em{position:absolute;top:-2px;left:4px;font-style:normal;font-size:10px;color:var(--red);background:#fff;padding:0 3px;white-space:nowrap}
+  .more{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:14px}
+  .legend{display:flex;gap:14px;font-size:12px;color:var(--mute);margin-top:8px}
+  .legend s{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;text-decoration:none;vertical-align:-1px}
+  .detail{margin-top:10px;font-size:13px;background:#f7f8fb;border-radius:6px;padding:8px 10px;min-height:36px}
+  table{border-collapse:collapse;width:100%;font-size:13px;margin-top:8px}
+  td,th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--mute);font-weight:600;font-size:12px}
+  .o-missed{color:var(--missed);font-weight:700}.o-taken{color:var(--taken);font-weight:700}.o-down{color:var(--down);font-weight:700}.o-test{color:var(--purple);font-weight:700}
+  ul.checks{list-style:none;margin:8px 0 0;padding:0}
+  ul.checks li{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.08)}
+  ul.checks li:last-child{border-bottom:0}
+  ul.checks input{margin-top:3px}
+  ul.checks label{cursor:pointer}
+  ul.checks li.done label{color:var(--mute);text-decoration:line-through}
+  .note{font-size:12px;color:var(--mute);margin-top:8px}
+  .demo{background:#eef1f7;border:1px dashed #b8c2d6;border-radius:10px;padding:10px 14px;margin-bottom:16px}
+  .demo b{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--mute)}
+  .demo select{font:inherit;padding:6px 8px;border-radius:6px;border:1px solid var(--line)}
+  .phonewrap{position:sticky;top:12px;height:max-content}
+  .phonewrap h3{margin:0 0 8px;font-size:13px;color:var(--mute);text-transform:uppercase;letter-spacing:.5px}
+  .phone{width:300px;border:10px solid #1b1f2a;border-radius:34px;background:#fff;padding:14px 14px 18px;min-height:600px;box-shadow:0 8px 22px rgba(0,0,0,.18)}
+  .phone .bar2{display:flex;justify-content:space-between;font-size:11px;color:var(--mute);margin-bottom:12px}
+  .phone h4{margin:0 0 4px;font-size:16px}
+  .pnote{border:1px solid #f0c27a;background:var(--amberbg);border-radius:12px;padding:12px;margin:12px 0}
+  .pnote.ok{border-color:#9ec3ee;background:var(--bluebg)}
+  .pnote.good{border-color:#a8d9bd;background:var(--greenbg)}
+  .pnote.bad{border-color:#eeb5b0;background:var(--redbg)}
+  .pnote.test{border-color:#c9b8ee;background:var(--purplebg)}
+  .pnote p{margin:0 0 10px;font-size:13.5px}
+  .pnote p:last-child{margin-bottom:0}
+  .pbtn{width:100%;border:0;background:var(--brand);color:#fff;border-radius:10px;padding:12px;font:inherit;font-size:15px;font-weight:800;cursor:pointer}
+  .pbtn.alt{background:#fff;color:var(--ink);border:1px solid var(--line);margin-top:8px}
+  .pbtn:hover:not(:disabled){filter:brightness(1.1)}
+  .pbtn:disabled{opacity:.4;cursor:not-allowed}
+  .small{font-size:12px;color:var(--mute)}
+  .ptimer{text-align:center;margin:6px 0 8px}
+  .ptimer .n{font-size:54px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+  .ptimer .u{font-size:13px;color:var(--mute)}
+  .pdetails{font-size:13px;margin:12px 0}
+  .pdetails div{padding:6px 0;border-bottom:1px solid var(--line)}
+  .pdetails span{display:block;font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.4px}
+  .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800}
+  .mini{display:flex;align-items:flex-end;gap:4px;height:46px;margin-top:6px}
+  .mini div{flex:1;background:var(--brand);border-radius:2px 2px 0 0;min-height:2px}
+  .mini div.z{background:#cfd5e2}
+  .minil{display:flex;gap:4px;font-size:9px;color:var(--mute)}
+  .minil span{flex:1;text-align:center}
+  .linkbtn{margin-top:10px;font-size:12px;background:none;border:0;color:var(--blue);text-decoration:underline;padding:0;cursor:pointer}
+  .hide{display:none !important}
+  .pulse{animation:pulse 1.2s ease-out 1}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(27,95,176,.55)}100%{box-shadow:0 0 0 14px rgba(27,95,176,0)}}
+  .modalbg{position:fixed;inset:0;background:rgba(20,25,40,.45);display:flex;align-items:center;justify-content:center;z-index:10}
+  .modal{background:#fff;border-radius:12px;padding:20px;width:min(440px,92vw);box-shadow:0 12px 40px rgba(0,0,0,.3)}
+  .modal h3{margin:0 0 4px}
+  .modal label{display:block;margin:12px 0 4px;font-weight:600;font-size:13px}
+  .modal select,.modal textarea{width:100%;font:inherit;padding:8px;border:1px solid var(--line);border-radius:6px}
+  .err{color:var(--red);font-size:12.5px;margin-top:6px;min-height:16px}
+  @media (max-width:1000px){.shell{grid-template-columns:1fr}.phonewrap{position:static}.phone{margin:0 auto}nav{display:none}.tiles{grid-template-columns:1fr 1fr}.more{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="banner"><b>Prototype.</b> Includes the proposed bug fixes and enhancements to the current console and phone app (<span class="new" style="margin:0">NEW</span> marks additions). The layout is illustrative until it's rebuilt from screenshots of the live screens. Weekly counts are Farlight's real ping log to 6 Sep. Everything else is demo or proposed.</div>
+<div class="top"><b>ROOK DISPATCH &middot; Console</b><span>Signed in as Linda Pruitt, handler</span></div>
+
+<div class="shell">
+  <nav>
+    <small>Dispatch</small>
+    <a href="#" onclick="return false">Coverage</a>
+    <a href="#" class="on" onclick="return false">Responders</a>
+    <a href="#" class="sub on" onclick="return false">Farlight</a>
+    <a href="#" onclick="return false">Incidents</a>
+    <small>Your roster</small>
+    <div class="small" style="padding:2px 10px 6px">You see the responders you look after. Other handlers' responders aren't listed.</div>
+  </nav>
+
+  <main>
+    <div class="crumb">Responders &rsaquo; Farlight</div>
+
+    <div class="notice" id="consoleNotice">
+      <div><b>What's changed:</b> the ping wait is now <b>75 seconds</b> (was 60). A missed ping now costs less standing than a turned-down one. You can extend a live ping by 30 seconds, with a reason.</div>
+      <button onclick="this.parentNode.classList.add('hide')">Dismiss</button>
+    </div>
+
+    <div class="demo">
+      <b>Demo controls (not part of the product)</b>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="sendBtn" onclick="sendPing()">Send a ping to Farlight</button>
+        <label class="small">Timer speed
+          <select id="speed"><option value="6">Fast (6x)</option><option value="1">Real time</option></select>
+        </label>
+        <label class="small">Her phone, for a test ping
+          <select id="delivery"><option value="yes">Receives it</option><option value="no">Doesn't receive it</option></select>
+        </label>
+        <button class="linkbtn" style="margin:0" onclick="resetDemo()">Reset demo</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="head">
+        <h1>Farlight</h1>
+        <span class="chip attn" id="chip">Needs attention</span>
+        <span class="meta">Usual area: Uptown &middot; Handler: Linda Pruitt</span>
+      </div>
+      <div class="sum" id="sum">
+        <div class="sumtitle" id="sumTitle"></div>
+        <p class="sumtext" id="sumText"></p>
+        <div class="row" id="sumActions">
+          <button class="btn" id="testBtn" onclick="sendTest()">Send a test ping</button>
+        </div>
+        <div class="sumnext" id="testNote">A test ping goes to her phone like a real one, is labelled TEST, and doesn't touch her standing or any metric. It shows whether her phone receives pings. Limit: one per hour (demo setting).</div>
+        <details id="checksD">
+          <summary>Quick checks (3)</summary>
+          <ul class="checks" id="checks">
+            <li><input type="checkbox" id="c1"><label for="c1">Are Farlight's phone notifications turned on for Rook?</label></li>
+            <li><input type="checkbox" id="c2"><label for="c2">Is she on the latest version of the Rook phone app?</label></li>
+            <li><input type="checkbox" id="c3"><label for="c3">Is the 75-second wait long enough for how she usually answers?</label></li>
+          </ul>
+          <p class="note"><span id="checkCount">0 of 3</span> checked. Generic checks only; the console doesn't know or guess why offers stopped.</p>
+        </details>
+      </div>
+    </div>
+
+    <div class="card test hide" id="testCard">
+      <h2>Test ping to Farlight <span class="new">NEW</span></h2>
+      <div class="timerrow">
+        <div class="timer t-ok" id="tTimer">75s</div>
+        <div class="tbar"><i id="tBar"></i></div>
+      </div>
+      <div class="statusmsg" id="tStatus"></div>
+    </div>
+
+    <div class="card live hide" id="liveCard">
+      <h2>Live ping to Farlight <span class="new">NEW</span></h2>
+      <div class="timerrow">
+        <div class="timer t-ok" id="hTimer">75s</div>
+        <div class="tbar"><i id="hBar"></i></div>
+        <button class="btn ghost" id="extendBtn" onclick="openOverride()">Extend wait (+30s)</button>
+      </div>
+      <div class="statusmsg" id="hStatus"></div>
+      <dl class="details" id="hDetails"></dl>
+      <div class="sourcekey"><span class="src real">TODAY</span> exists in today's data &nbsp; <span class="src prop">PROPOSED</span> needs new intake data (demo values shown)</div>
+    </div>
+
+    <div class="card hide" id="incCard" style="border:2px solid var(--taken)">
+      <h2>Current incident <span class="new">NEW</span> <span class="chip active" id="incChip" style="margin-left:6px">Active</span></h2>
+      <div class="steps" id="steps"><div>Active</div><div>Resolved</div><div>Closed</div></div>
+      <div class="statusmsg" id="incStatus"></div>
+      <div class="row" style="margin-top:10px"><button class="btn" id="closeBtn" onclick="closeIncident()" disabled>Close incident</button><span class="small" id="closeHint">Available once Farlight marks it resolved.</span></div>
+      <dl class="details" id="incDetails"></dl>
+    </div>
+
+    <div class="card">
+      <h2>Farlight's week <span class="new">NEW</span></h2>
+      <div class="tiles" id="tiles"></div>
+      <div class="chart"><h3>Offers by week</h3><p>How many pings, and what happened. Click a bar. Dashed line: 4.2 shipped.</p>
+        <div class="bars" id="ch1"></div><div class="lbls" id="lb1"></div></div>
+      <div class="legend"><span><s style="background:var(--taken)"></s>Taken</span><span><s style="background:var(--down)"></s>Turned down</span><span><s style="background:var(--missed)"></s>Missed</span></div>
+      <div class="detail" id="detail">Click a bar to see that week.</div>
+      <details>
+        <summary>Show all weekly charts</summary>
+        <div class="more">
+          <div class="chart"><h3>Acceptance rate</h3><p>Taken &divide; offered.</p><div class="bars" id="ch2"></div><div class="lbls" id="lb2"></div></div>
+          <div class="chart"><h3>Missed share</h3><p>Missed &divide; offered.</p><div class="bars" id="ch3"></div><div class="lbls" id="lb3"></div></div>
+          <div class="chart"><h3>Uptown callouts reaching her</h3><p>Share of Uptown callouts offered to Farlight.</p><div class="bars" id="ch4"></div><div class="lbls" id="lb4"></div></div>
+        </div>
+      </details>
+      <details>
+        <summary>Recent offers</summary>
+        <table id="lastOffers"><tr><th>Sent</th><th>Outcome</th></tr></table>
+        <p class="note">Counts and outcomes only. The console never shows why.</p>
+      </details>
+      <details>
+        <summary>Override log</summary>
+        <table id="logTable"><tr><th>When</th><th>Action</th><th>Reason</th></tr>
+          <tr id="logEmpty"><td colspan="3" class="small">No overrides yet. Extending a live ping adds a row here.</td></tr></table>
+        <p class="note">Every extension needs a reason. Reasons stay generic: nothing that identifies a person or their cover (Policy 4.1).</p>
+      </details>
+    </div>
+  </main>
+
+  <aside class="phonewrap">
+    <h3>What Farlight sees on her phone</h3>
+    <div class="phone">
+      <div class="bar2"><span>Rook</span><span>Callouts</span></div>
+
+      <div id="pHome">
+        <div class="pnote ok" id="pNotice" style="margin-top:0">
+          <p style="font-size:12.5px"><b>What's changed:</b> you now have <b>75 seconds</b> to answer a ping (was 60). A missed ping costs less standing than a turn-down.</p>
+          <button class="linkbtn" style="margin:0" onclick="document.getElementById('pNotice').classList.add('hide')">Dismiss</button>
+        </div>
+        <div id="pQuiet">
+          <h4>No callouts right now</h4>
+          <div class="pnote">
+            <p><b>You're getting fewer callouts than usual.</b> Recent pings went unanswered, so you're lower in the order.</p>
+            <button class="pbtn" onclick="checkIn()">I'm here and reachable</button>
+          </div>
+          <p class="small">Tap to open a recovery window: your next <span class="recN"></span> pings won't count a miss against you. It ends when you have been offered that many pings, or after <span class="recD"></span> days, whichever comes first.</p>
+        </div>
+        <div id="pChecked" class="hide">
+          <h4>You're checked in</h4>
+          <div class="pnote ok">
+            <p><b>Thanks.</b> For your next <span class="recN"></span> pings (or <span class="recD"></span> days, whichever comes first), a miss won't count against you. Take one to start rebuilding your place in the order.</p>
+          </div>
+          <p class="small">Your handler, Linda, can see you've checked in. <span id="pRecLeft"></span></p>
+        </div>
+        <div id="pActive" class="hide">
+          <h4>You're back in the order</h4>
+          <div class="pnote good"><p><b>Nice.</b> Taking a ping rebuilds your place in the order.</p></div>
+        </div>
+        <div class="small" style="margin-top:14px"><b>Your offers, last 6 weeks</b> <span class="new">NEW</span></div>
+        <div class="mini" id="miniBars"></div>
+        <div class="minil" id="miniLbls"></div>
+      </div>
+
+      <div id="pPing" class="hide">
+        <h4 style="color:var(--blue)">Incoming callout</h4>
+        <div class="ptimer"><div class="n t-ok" id="pTimer">75</div><div class="u">seconds to answer</div></div>
+        <div class="tbar"><i id="pBar"></i></div>
+        <div class="pnote ok hide" id="pExt" style="margin:10px 0 0"><p style="font-size:12.5px">Your handler gave you 30 more seconds.</p></div>
+        <div class="pdetails" id="pDetails"></div>
+        <div class="small" style="margin-bottom:8px"><span class="src real">TODAY</span> in today's data &nbsp; <span class="src prop">PROPOSED</span> new</div>
+        <button class="pbtn" id="takeBtn" onclick="answer('taken')">Take it</button>
+        <button class="pbtn alt" id="downBtn" onclick="answer('turned down')">Turn down</button>
+      </div>
+
+      <div id="pTest" class="hide">
+        <h4 style="color:var(--purple)">TEST ping from your handler</h4>
+        <div class="pnote test"><p><b>This is a test.</b> There is no incident. It doesn't affect your standing.</p>
+        <p>Tap below so your handler knows your phone is receiving pings.</p></div>
+        <div class="ptimer"><div class="n t-ok" id="ptTimer">75</div><div class="u">seconds</div></div>
+        <button class="pbtn" onclick="ackTest()">I got it</button>
+      </div>
+
+      <div id="pIncident" class="hide">
+        <h4 id="pIncTitle">You're on this callout</h4>
+        <div style="margin:6px 0 10px"><span class="pill" id="pIncPill" style="background:var(--greenbg);color:var(--green)">Active</span></div>
+        <div class="pdetails" id="pIncDetails"></div>
+        <div class="small" style="margin-bottom:8px">Full details unlock once you take a callout.</div>
+        <button class="pbtn" id="resolveBtn" onclick="markResolved()">Mark resolved</button>
+        <div class="pnote ok hide" id="pIncMsg" style="margin-top:10px"><p id="pIncMsgText"></p></div>
+        <button class="pbtn alt hide" id="pBackBtn" onclick="backHome()">Back to callouts</button>
+      </div>
+
+      <div id="pResult" class="hide">
+        <h4 id="pResTitle"></h4>
+        <div class="pnote" id="pResBox"><p id="pResText"></p></div>
+        <button class="pbtn alt" onclick="backHome()">Back to callouts</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="modalbg hide" id="modalBg">
+  <div class="modal">
+    <h3>Extend this ping by 30 seconds</h3>
+    <div class="small">Farlight sees the extra time on her phone. One extension per ping (demo setting).</div>
+    <label for="reason">Reason (required)</label>
+    <select id="reason">
+      <option value="">Choose a reason...</option>
+      <option>Responder has confirmed they are about to answer</option>
+      <option>Known phone or connection problem</option>
+      <option>No other responder is available in this area</option>
+      <option>Other (add a note)</option>
+    </select>
+    <label for="reasonNote">Note (optional, required for "Other")</label>
+    <textarea id="reasonNote" rows="2" placeholder="Don't include anything that identifies a person or their cover."></textarea>
+    <div class="err" id="reasonErr"></div>
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn ghost" onclick="closeOverride()">Cancel</button>
+      <button class="btn" onclick="confirmOverride()">Extend and log</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Farlight's real weekly ping log (weeks starting Monday).
+  // upl = Uptown callouts that week; upo = how many of those were offered to Farlight.
+  var BASE = [
+    {l:"29 Jun", t:9, d:3, m:0, upl:10, upo:10},
+    {l:"6 Jul",  t:9, d:3, m:0, upl:10, upo:10},
+    {l:"13 Jul", t:8, d:2, m:1, upl:8,  upo:8},
+    {l:"20 Jul", t:9, d:2, m:1, upl:10, upo:10},
+    {l:"27 Jul", t:10,d:3, m:0, upl:11, upo:11},
+    {l:"3 Aug",  t:8, d:3, m:1, upl:8,  upo:8},
+    {l:"10 Aug", t:4, d:2, m:4, upl:6,  upo:6},
+    {l:"17 Aug", t:0, d:1, m:2, upl:7,  upo:2},
+    {l:"24 Aug", t:0, d:0, m:1, upl:10, upo:0},
+    {l:"31 Aug", t:0, d:0, m:0, upl:10, upo:0}
+  ];
+  // "Usual" = the six weeks before 4.2 (29 Jun - 9 Aug): about 12 offers, 74% accepted, 4% missed, every Uptown callout offered.
+  var USUAL = {offers:12, acc:74, miss:4, share:100};
+  var RECENT0 = [
+    {o:'missed',d:'28 Aug'},{o:'missed',d:'23 Aug'},{o:'turned down',d:'22 Aug'},{o:'missed',d:'19 Aug'},{o:'taken',d:'14 Aug'}
+  ];
+  // Wording and area are real Uptown callouts; every other field is a demo value.
+  var CALLOUTS = [
+    {what:"Three men in matching capes are emptying a bank.", type:"Robbery in progress", people:"About 3 suspects, staff inside", travel:"9 min", tags:"crowd-management", loc:"The bank on the high street", notes:"Staff report two exits."},
+    {what:"A man who says he is from the year 2091 has locked the doors of the clock tower from the inside.", type:"Barricade", people:"1 person, doors locked", travel:"12 min", tags:"structural-entry, de-escalation", loc:"The clock tower, Uptown square", notes:"Doors are locked from inside."},
+    {what:"Two brothers in welding masks have taken over the announcements at the train station.", type:"Public disruption", people:"2 people, crowd present", travel:"7 min", tags:"crowd-management, de-escalation", loc:"Uptown train station, main concourse", notes:"Crowd on the platform."}
+  ];
+  var TOTAL = 75, EXT = 30, RECOVERY = 3, RECOVERY_DAYS = 7; // demo values: window length, expiry and extension to be set with Wen
+  var W, S;
+
+  function init(){
+    W = BASE.map(function(x){return Object.assign({}, x)});
+    S = {phase:'idle', kind:'', remaining:TOTAL, total:TOTAL, extended:false, recovery:false, recLeft:0, back:false,
+         idx:0, timerId:null, incTimer:null, sel:-1, recent:RECENT0.map(function(x){return Object.assign({},x)}),
+         inc:null, testUsed:false, testDelivered:true, call:null};
+    render();
+  }
+
+  function el(id){return document.getElementById(id)}
+  function pct(a,b){return b>0 ? Math.round(a/b*100) : null}
+  function fmt(r){return Math.max(0, Math.ceil(r))}
+  function tClass(r){return r > 30 ? 't-ok' : (r > 15 ? 't-warn' : 't-low')}
+  function barColour(r){return r > 30 ? 'var(--green)' : (r > 15 ? 'var(--amber)' : 'var(--red)')}
+  function esc(s){return s.replace(/[&<>]/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+  function showPhone(id){['pHome','pPing','pTest','pIncident','pResult'].forEach(function(x){el(x).classList.toggle('hide', x!==id)})}
+  function mmss(ms){var s=Math.floor(ms/1000);return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2)}
+
+  // ---------- charts ----------
+  function drawChart(id, lblId, vals, kind){
+    var box = el(id), lb = el(lblId); box.innerHTML=''; lb.innerHTML='';
+    vals.forEach(function(v,i){
+      var b = document.createElement('div'); b.className = 'bar'+(kind==='count' && S.sel===i?' sel':'');
+      var w = W[i];
+      if (kind==='count'){
+        var h = 80/14, tot = w.t+w.d+w.m;
+        b.innerHTML = '<i style="height:'+(w.m*h)+'px;background:var(--missed)"></i><i style="height:'+(w.d*h)+'px;background:var(--down)"></i><i style="height:'+(w.t*h)+'px;background:var(--taken)"></i><b style="bottom:'+(tot*h+2)+'px">'+tot+'</b>';
+        b.onclick = function(){S.sel=i; showDetail(i); render()};
+      } else {
+        var c = kind==='acc' ? 'var(--taken)' : (kind==='miss' ? 'var(--missed)' : 'var(--brand)');
+        var hh = v===null ? 0 : v/100*80;
+        b.innerHTML = '<i style="height:'+hh+'px;background:'+c+'"></i><b style="bottom:'+(hh+2)+'px">'+(v===null?'–':v+'%')+'</b>';
+        b.title = w.l+': '+(v===null?'no offers':v+'%');
+      }
+      box.appendChild(b);
+      var s = document.createElement('span'); s.textContent = i%2===0 ? w.l.replace(' ',' ') : ''; lb.appendChild(s);
+    });
+    var m = document.createElement('div'); m.className='marker'; m.style.left=((6.4)/vals.length*100)+'%'; m.innerHTML='<em>4.2</em>'; box.appendChild(m);
+  }
+  function showDetail(i){
+    var w=W[i], tot=w.t+w.d+w.m;
+    var msg='<b>Week of '+w.l+':</b> '+tot+' offer'+(tot===1?'':'s')+' — '+w.t+' taken, '+w.d+' turned down, '+w.m+' missed. Uptown callouts that week: '+w.upl+', offered to Farlight: '+w.upo+'.';
+    if (i===6) msg+=' 4.2 shipped on 12 Aug, in the middle of this week.';
+    el('detail').innerHTML=msg;
+  }
+  function drawTiles(){
+    var w=W[9], tot=w.t+w.d+w.m;
+    var acc=pct(w.t,tot), miss=pct(w.m,tot), share=pct(w.upo,w.upl);
+    var defs=[
+      {k:'Offers this week', v:tot, u:'usual '+USUAL.offers, bad: tot < USUAL.offers/2, good: tot >= USUAL.offers*0.8},
+      {k:'Accepted', v:acc===null?'–':acc+'%', u:'usual '+USUAL.acc+'%', bad: acc!==null && acc < USUAL.acc/2, good: acc!==null && acc >= USUAL.acc-10},
+      {k:'Missed', v:miss===null?'–':miss+'%', u:'usual '+USUAL.miss+'%', bad: miss!==null && miss >= 25, good: miss!==null && miss <= 15},
+      {k:'Uptown callouts reaching her', v:share===null?'–':share+'%', u:'usual '+USUAL.share+'%', bad: share!==null && share < 50, good: share!==null && share >= 80}
+    ];
+    el('tiles').innerHTML = defs.map(function(d){
+      return '<div class="tile '+(d.bad?'bad':(d.good?'good':''))+'"><div class="k">'+d.k+'</div><div class="v">'+d.v+'</div><div class="u">'+d.u+'</div></div>';
+    }).join('');
+  }
+  function drawAll(){
+    drawChart('ch1','lb1', W.map(function(w){return w.t+w.d+w.m}), 'count');
+    drawChart('ch2','lb2', W.map(function(w){return pct(w.t,w.t+w.d+w.m)}), 'acc');
+    drawChart('ch3','lb3', W.map(function(w){return pct(w.m,w.t+w.d+w.m)}), 'miss');
+    drawChart('ch4','lb4', W.map(function(w){return pct(w.upo,w.upl)}), 'share');
+    drawTiles();
+    var mb=el('miniBars'), ml=el('miniLbls'); mb.innerHTML=''; ml.innerHTML='';
+    W.slice(-6).forEach(function(w){
+      var tot=w.t+w.d+w.m, d=document.createElement('div');
+      d.style.height=Math.max(2, tot/13*44)+'px'; if(tot===0) d.className='z'; mb.appendChild(d);
+      var s=document.createElement('span'); s.textContent=tot; ml.appendChild(s);
+    });
+    var t=el('lastOffers'); while(t.rows.length>1) t.deleteRow(1);
+    S.recent.slice(0,6).forEach(function(r){
+      var cls = r.o==='taken'?'o-taken':(r.o==='missed'?'o-missed':(r.o==='test'?'o-test':'o-down'));
+      var label = r.o==='test' ? (r.ok?'Test ping: acknowledged':'Test ping: not acknowledged') : (r.o.charAt(0).toUpperCase()+r.o.slice(1));
+      var tr=t.insertRow(-1); tr.innerHTML='<td>'+r.d+'</td><td><span class="'+cls+'">'+label+'</span></td>';
+    });
+  }
+
+  // ---------- ping details (same info on both sides) ----------
+  function detailsHandler(c, full){
+    function row(k,v,s){return '<dt>'+k+'</dt><dd>'+v+' <span class="src '+s+'">'+(s==='real'?'TODAY':'PROPOSED')+'</span></dd>'}
+    var h = row('What happened', c.what,'real') + row('Where','Uptown','real') + row('Received','Just now','real') +
+            row('Incident type', c.type,'prop') + row('People involved', c.people,'prop') + row('Needs', c.tags,'prop') + row('Travel for Farlight','about '+c.travel,'prop');
+    if (full) h += row('Exact location', c.loc,'prop') + row('Notes', c.notes,'prop');
+    return h;
+  }
+  function detailsPhone(c, full){
+    function item(k,v,s){return '<div><span>'+k+' <i class="src '+s+'">'+(s==='real'?'TODAY':'PROPOSED')+'</i></span>'+v+'</div>'}
+    var h = item('What happened', c.what,'real') + item('Where','Uptown, about '+c.travel+' away','prop') + item('Incident type', c.type,'prop') +
+            item('People involved', c.people,'prop') + item('Needs', c.tags,'prop');
+    if (full) h += item('Exact location', c.loc,'prop') + item('Notes', c.notes,'prop');
+    return h;
+  }
+
+  // ---------- timer ----------
+  function paintTimer(timerIds, barId, r, total, suffix){
+    timerIds.forEach(function(id){
+      var e=el(id); e.textContent=fmt(r)+(suffix||''); e.className=(suffix?'timer ':'n ')+tClass(r);
+    });
+    var b=el(barId); b.style.width=Math.max(0, r/total*100)+'%'; b.style.background=barColour(r);
+  }
+  function updateTimerUI(){
+    if (S.kind==='ping') { paintTimer(['hTimer'],'hBar',S.remaining,S.total,'s'); paintTimer(['pTimer'],'pBar',S.remaining,S.total,''); }
+    if (S.kind==='test') { paintTimer(['tTimer'],'tBar',S.remaining,S.total,'s'); paintTimer(['ptTimer'],'tBar',S.remaining,S.total,''); }
+  }
+  function tick(){
+    S.remaining -= 0.1 * parseFloat(el('speed').value);
+    if (S.remaining <= 0){
+      S.remaining = 0; updateTimerUI();
+      if (S.kind==='ping') answer('missed'); else finishTest(false);
+      return;
+    }
+    updateTimerUI();
+  }
+
+  // ---------- real ping flow ----------
+  function busy(){return S.phase==='live' || S.phase==='test' || !!(S.inc && S.inc.status!=='closed')}
+  function sendPing(){
+    if (busy()) return;
+    var c = CALLOUTS[S.idx % CALLOUTS.length]; S.call = c;
+    S.phase='live'; S.kind='ping'; S.remaining=TOTAL; S.total=TOTAL; S.extended=false;
+    W[9].upl += 1; W[9].upo += 1;
+    el('testCard').classList.add('hide'); el('incCard').classList.add('hide');
+    el('hDetails').innerHTML = detailsHandler(c,false); el('pDetails').innerHTML = detailsPhone(c,false);
+    var lc=el('liveCard'); lc.classList.remove('hide','missed','taken');
+    el('hStatus').textContent='Waiting for Farlight to answer. If the timer reaches zero the ping counts as missed and moves to the next responder.';
+    el('extendBtn').disabled=false; el('pExt').classList.add('hide');
+    el('takeBtn').disabled=false; el('downBtn').disabled=false;
+    showPhone('pPing'); setChip('ping','Ping live'); updateTimerUI();
+    clearInterval(S.timerId); S.timerId=setInterval(tick,100);
+    render();
+  }
+  function answer(outcome){
+    if (S.phase!=='live') return;
+    clearInterval(S.timerId);
+    var w=W[9], lc=el('liveCard');
+    if (outcome==='taken'){
+      w.t+=1; S.recovery=false; S.recLeft=0;
+      S.recent.unshift({o:'taken',d:'Just now'});
+      lc.classList.add('taken'); el('hStatus').innerHTML='<b>Farlight took the ping</b> with '+fmt(S.remaining)+'s left.';
+      el('extendBtn').disabled=true;
+      startIncident(); return;
+    }
+    S.phase='idle'; el('extendBtn').disabled=true; el('takeBtn').disabled=true; el('downBtn').disabled=true;
+    var title, text, cls, hmsg, windowEnded=false;
+    if (outcome==='turned down'){
+      w.d+=1; title='Passed on'; cls=''; text='The ping has moved to the next responder. A turn-down costs a little standing.';
+      hmsg='<b>Farlight turned the ping down.</b> It has moved to the next responder.';
+    } else {
+      w.m+=1;
+      if (S.recovery && S.recLeft>0){
+        S.recLeft-=1; windowEnded=(S.recLeft===0);
+        text='This miss does not count against you, because your recovery window is open. '+S.recLeft+' left in the window.';
+        hmsg='<b>Ping missed.</b> It moved to the next responder. Not counted against Farlight’s standing (recovery window, '+S.recLeft+' left).';
+      } else {
+        text='This ping moved to the next responder. A miss costs less standing than turning one down, and taking the next one rebuilds it.';
+        hmsg='<b>Ping missed.</b> It moved to the next responder. A miss now costs less standing than a turn-down.';
+      }
+      title='Missed'; cls='bad';
+    }
+    S.recent.unshift({o:outcome,d:'Just now'});
+    if (windowEnded) S.recovery=false;
+    lc.classList.add('missed'); el('hStatus').innerHTML=hmsg;
+    el('pResTitle').textContent=title; el('pResBox').className='pnote '+cls; el('pResText').textContent=text;
+    showPhone('pResult'); S.idx+=1; render();
+  }
+
+  // ---------- incident (after taking) ----------
+  function startIncident(){
+    S.phase='incident'; S.inc={status:'active', start:Date.now(), end:null};
+    el('liveCard').classList.add('hide'); el('incCard').classList.remove('hide');
+    el('incDetails').innerHTML = detailsHandler(S.call,true); el('pIncDetails').innerHTML = detailsPhone(S.call,true);
+    el('resolveBtn').classList.remove('hide'); el('pIncMsg').classList.add('hide'); el('pBackBtn').classList.add('hide');
+    el('pIncTitle').textContent="You're on this callout";
+    S.idx+=1; showPhone('pIncident');
+    clearInterval(S.incTimer); S.incTimer=setInterval(function(){render()},1000);
+    render();
+  }
+  function markResolved(){
+    if (!S.inc || S.inc.status!=='active') return;
+    S.inc.status='resolved'; S.inc.end=Date.now();
+    el('resolveBtn').classList.add('hide'); el('pIncMsg').classList.remove('hide');
+    el('pIncMsgText').textContent='Marked resolved. Your handler will close the incident, then you’re available again.';
+    render();
+  }
+  function closeIncident(){
+    if (!S.inc || S.inc.status!=='resolved') return;
+    S.inc.status='closed'; clearInterval(S.incTimer); S.back=true; S.phase='idle';
+    el('pIncMsgText').textContent='Incident closed by your handler. You’re available for callouts again.';
+    el('pIncTitle').textContent='Incident closed'; el('pBackBtn').classList.remove('hide');
+    render();
+  }
+  function backHome(){showPhone('pHome'); render()}
+
+  // ---------- test ping ----------
+  function sendTest(){
+    if (busy() || S.testUsed) return;
+    S.phase='test'; S.kind='test'; S.remaining=TOTAL; S.total=TOTAL; S.testUsed=true; S.testDelivered=(el('delivery').value==='yes');
+    el('testCard').classList.remove('hide'); el('liveCard').classList.add('hide'); el('incCard').classList.add('hide');
+    el('tStatus').innerHTML = S.testDelivered ? 'Sent. <b>Delivered to her phone.</b> Waiting for her to tap "I got it".' : 'Sent. <b>Not yet delivered.</b> Waiting up to 75 seconds.';
+    if (S.testDelivered) showPhone('pTest');
+    setChip('ping','Test ping out'); updateTimerUI();
+    clearInterval(S.timerId); S.timerId=setInterval(tick,100);
+    render();
+  }
+  function ackTest(){ if (S.phase==='test') finishTest(true) }
+  function finishTest(ok){
+    clearInterval(S.timerId); S.phase='idle';
+    var used = TOTAL - S.remaining;
+    if (ok){
+      el('tStatus').innerHTML='<b>Result: working.</b> Her phone received the test ping and she acknowledged it after '+Math.round(used)+'s. Pings are reaching her, so if she still misses real ones, look at the wait length or how quickly she can answer.';
+    } else if (S.testDelivered){
+      el('tStatus').innerHTML='<b>Result: delivered, not answered.</b> Her phone received it but she didn’t tap within 75s. She may not have seen it. Check the quick checks, or ask her directly.';
+    } else {
+      el('tStatus').innerHTML='<b>Result: not delivered.</b> The ping never reached her phone. Check notification settings and app version in the quick checks.';
+      el('checksD').open = true;
+    }
+    S.recent.unshift({o:'test', ok:ok, d:'Just now'});
+    showPhone('pHome'); render();
+  }
+
+  function checkIn(){
+    if (S.back || busy()) return;
+    S.recovery=true; S.recLeft=RECOVERY; render(); el('chip').classList.add('pulse');
+  }
+
+  // ---------- override ----------
+  function openOverride(){
+    if (S.phase!=='live' || S.extended) return;
+    el('reason').value=''; el('reasonNote').value=''; el('reasonErr').textContent=''; el('modalBg').classList.remove('hide');
+  }
+  function closeOverride(){el('modalBg').classList.add('hide')}
+  function confirmOverride(){
+    var r=el('reason').value, n=el('reasonNote').value.trim();
+    if (!r){el('reasonErr').textContent='Choose a reason before extending.'; return}
+    if (r.indexOf('Other')===0 && !n){el('reasonErr').textContent='Add a short note for "Other".'; return}
+    closeOverride();
+    if (S.phase!=='live') return;
+    S.remaining+=EXT; S.total+=EXT; S.extended=true;
+    el('extendBtn').disabled=true; el('pExt').classList.remove('hide');
+    el('hStatus').textContent='You extended this ping by '+EXT+'s. Farlight can see the extra time.';
+    el('logEmpty').classList.add('hide');
+    var tr=el('logTable').insertRow(1); tr.className='logrow';
+    tr.innerHTML='<td>Just now</td><td>Ping wait +'+EXT+'s (Linda Pruitt)</td><td>'+esc(r)+(n?': '+esc(n):'')+'</td>';
+    updateTimerUI();
+  }
+
+  // ---------- status summary and render ----------
+  function setChip(kind,text){var c=el('chip'); c.className='chip '+kind; c.textContent=text}
+  function render(){
+    var w=W[9], tot=w.t+w.d+w.m;
+    var real = S.recent.filter(function(r){return r.o!=='test'});
+    var run = 0; while (run<real.length && real[run].o==='missed') run++;
+    var sum=el('sum'), title=el('sumTitle'), text=el('sumText');
+    var live = (S.phase==='live' || S.phase==='test');
+    var inc = !!(S.inc && S.inc.status!=='closed');
+    if (inc){
+      sum.className='sum inc';
+      if (S.inc.status==='active'){ title.textContent='On an incident'; text.textContent='Farlight is active on a callout ('+S.call.type+'). Elapsed: '+mmss(Date.now()-S.inc.start)+'.'; setChip('active','Active'); }
+      else { title.textContent='Resolved, waiting for you to close'; text.textContent='Farlight marked the incident resolved. Close it to put her back in the order.'; setChip('resolved','Resolved'); }
+    } else if (live){
+      sum.className='sum rec'; title.textContent = S.phase==='test' ? 'Test ping out' : 'Ping live'; text.textContent = S.phase==='test' ? 'Waiting for Farlight’s phone to answer the test.' : 'A real callout is on Farlight’s phone now.';
+    } else if (S.recovery){
+      sum.className='sum rec'; title.textContent='Recovering'; setChip('rec','Recovering');
+      text.textContent='Farlight checked in. For her next '+S.recLeft+' of '+RECOVERY+' pings (or '+RECOVERY_DAYS+' days, whichever comes first; demo values, to be set with Wen) a miss won’t count against her standing.';
+    } else if (S.back){
+      sum.className='sum ok'; title.textContent='Taking offers again'; setChip('ok','Available'); text.textContent='Farlight took a ping and closed the incident. Taking pings rebuilds her standing.';
+    } else if (tot===0 || run>=3){
+      sum.className='sum'; setChip('attn','Needs attention');
+      title.textContent='Needs attention: Farlight has gone quiet';
+      text.textContent = (tot===0 ? 'No offers this week (usual: about '+USUAL.offers+'). ' : 'Offers are down this week. ') + (run>=2 ? 'Her last '+run+' offers were all missed. ' : '') + 'Uptown callouts are still coming in; other responders are taking them. Suggested next step: send a test ping to see whether her phone is receiving pings.';
+    } else {
+      sum.className='sum ok'; setChip('ok','Available'); title.textContent='Farlight looks normal'; text.textContent='Offers and answers are in her usual range.';
+    }
+    el('sumActions').classList.toggle('hide', inc || live);
+    el('testNote').classList.toggle('hide', inc || live);
+    el('testBtn').disabled = S.testUsed;
+    el('testBtn').textContent = S.testUsed ? 'Test ping sent (limit: 1 per hour, demo)' : 'Send a test ping';
+    if (S.inc){
+      var st=S.inc.status, idx = st==='active'?0:(st==='resolved'?1:2);
+      Array.prototype.forEach.call(el('steps').children, function(d,i){ d.className = st==='closed' ? 'done' : (i<idx ? 'done' : (i===idx ? 'now' : '')); });
+      var ic=el('incChip'); ic.className='chip '+(st==='active'?'active':(st==='resolved'?'resolved':'ok')); ic.textContent = st.charAt(0).toUpperCase()+st.slice(1);
+      var end = S.inc.end || Date.now();
+      el('incStatus').innerHTML = st==='active' ? '<b>Active</b> for '+mmss(Date.now()-S.inc.start)+'. Farlight is on this callout.' :
+                                  (st==='resolved' ? '<b>Resolved</b> after '+mmss(end-S.inc.start)+'. Waiting for you to close it.' :
+                                  '<b>Closed.</b> Active for '+mmss(end-S.inc.start)+'. Farlight is available again.');
+      el('closeBtn').disabled = (st!=='resolved');
+      el('closeHint').textContent = st==='active' ? 'Available once Farlight marks it resolved.' : (st==='resolved' ? 'Closing returns her to the order.' : 'Incident closed.');
+      var pp=el('pIncPill'); pp.textContent = st.charAt(0).toUpperCase()+st.slice(1);
+      pp.style.background = st==='active'?'var(--greenbg)':'var(--purplebg)'; pp.style.color = st==='active'?'var(--green)':'var(--purple)';
+    }
+    el('pQuiet').classList.toggle('hide', S.recovery || S.back);
+    el('pChecked').classList.toggle('hide', !S.recovery || S.back);
+    el('pActive').classList.toggle('hide', !S.back);
+    el('pRecLeft').textContent = S.recovery ? ('Recovery window: '+S.recLeft+' of '+RECOVERY+' pings left, up to '+RECOVERY_DAYS+' days (demo values).') : '';
+    el('sendBtn').disabled = busy();
+    drawAll();
+  }
+  function resetDemo(){
+    if (S){ clearInterval(S.timerId); clearInterval(S.incTimer); }
+    closeOverride();
+    ['liveCard','testCard','incCard'].forEach(function(id){el(id).classList.add('hide')});
+    Array.prototype.slice.call(el('logTable').querySelectorAll('tr.logrow')).forEach(function(r){r.remove()}); el('logEmpty').classList.remove('hide');
+    el('pNotice').classList.remove('hide'); el('consoleNotice').classList.remove('hide');
+    el('detail').textContent='Click a bar to see that week.'; el('checksD').open=false;
+    showPhone('pHome'); init();
+  }
+  document.querySelectorAll('#checks input').forEach(function(cb){
+    cb.addEventListener('change', function(){
+      cb.parentNode.classList.toggle('done', cb.checked);
+      el('checkCount').textContent = document.querySelectorAll('#checks input:checked').length+' of 3';
+    });
+  });
+  document.querySelectorAll('.recN').forEach(function(e){e.textContent=RECOVERY});
+  document.querySelectorAll('.recD').forEach(function(e){e.textContent=RECOVERY_DAYS});
+  init();
+</script>
+</body>
+</html>
